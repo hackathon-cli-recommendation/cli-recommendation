@@ -25,8 +25,8 @@
         |command | string | true | - | The command used by customer |
         |param | JSON | false | None | The parameters used by customer |
         |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem |
-        |type | Integer | false | 1 | Recommendation type, value range: 1.operation 2.command 3.resource 4.service 5.mix |
-        |top_num | Integer | false | 5 | The maximum number of recommended items
+        |type | int | false | 1 | Recommendation type, value range: 1.operation 2.command 3.resource 4.service 5.mix |
+        |top_num | int | false | 5 | The maximum number of recommended items
 
     * Response Data:
 
@@ -34,7 +34,7 @@
         |----- |------|-------------|
         | status | int | Status code |
         | error_code | int | Error code |
-        | data | JSON (List) | [Recommended data](#recommended_data) |
+        | data | JSON (list) | [Recommended data](#recommended_data) |
 
         <span id = "recommended_data">Recommended data</span>
         | Name | Type | Description |
@@ -42,8 +42,8 @@
         | command | string | Recommended command |
         | param   | JSON | Recommended parameters |
         | reason | string | Recommended reason |
-        | ratio | Float | Usage percentage |
-        | score | Float | Relevancy score |
+        | ratio | float | Usage percentage |
+        | score | float | Relevancy score |
        
 
     * Example：
@@ -63,7 +63,7 @@
         ```json
                 {
                     "status": 200,
-                    "error_code": None,
+                    "error_code": null,
                     "data": [
                         {
                             "command": "az role assignment create",
