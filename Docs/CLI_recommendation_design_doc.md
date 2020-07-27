@@ -5,7 +5,7 @@ This is a recommendation system based on customer behavior analysis: performs bi
 Help the new customers quickly pick up the commands they need and recommend other potential requirements to them. It is an in-tool guidence which can reduce customer's learning cost and improves use efficiency.
 
 # Applicable Scenarios
-### 1. az next operation
+### 1. az next solution
 When a customer executes a command with some kind of error, recommend the next command that the vast majority of users execute and ask him to confirm whether to execute it. This reduces the process of the customer's troubleshooting and command input
 
 *For example, when a customer fails to execute a command due to an unknown permission problem, it is directly recommended to the next command that most users use to apply for a certain permission, and let him confirm whether to execute it.* 
@@ -16,7 +16,15 @@ msrestazure.azure_exceptions.CloudError: Azure Error: AuthorizationFailed
 Message: The client 'xxx' with object id 'xxx' does not have authorization to perform action 'Microsoft.Resources/subscriptions/resourcegroups/write' over scope '/subscriptions/xxx' or the scope is invalid. If access was recently granted, please refresh your credentials.
 
 (env) PS C:\project> az next
-What kind of recommendation do you want? (1.operation 2.command 3.resource 4.service 5.mix): 1
+
+Please select the type of recommendation you need:
+1. all: It will intelligently analyze the types of recommendation you need, and may recommend multiple types of content to you
+2. solution: Only the solutions to problems when errors occur are recommend
+3. command: Only the commands with high correlation with previously executed commands are recommend
+4. resource: Only the resources related to previously created resources are recommended
+5. senario: Only the E2E scenarios related to current usage scenarios are recommended
+
+What kind of recommendation do you want? : 2
 
 az role assignment create
 Recommended reason: 97% users create a new role assignment for a user, group, or service when this error is encountered
@@ -41,7 +49,15 @@ When a customer executes a command, it is recommended that other groups of comma
 Policy definition created successfully...
 
 (env) PS C:\project> az next
-What kind of recommendation do you want? (1.operation 2.command 3.resource 4.service 5.mix): 2
+
+Please select the type of recommendation you need:
+1. all: It will intelligently analyze the types of recommendation you need, and may recommend multiple types of content to you
+2. solution: Only the solutions to problems when errors occur are recommend
+3. command: Only the commands with high correlation with previously executed commands are recommend
+4. resource: Only the resources related to previously created resources are recommended
+5. senario: Only the E2E scenarios related to current usage scenarios are recommended
+
+What kind of recommendation do you want? : 3
 
 az policy assignment create
 Recommended reason: 92% users create a policy assignment to assign policy after creating the policy
@@ -66,7 +82,15 @@ After a customer has created a certain type of resource, it is recommended to th
 VM created successfully...
 
 (env) PS C:\project> az next
-What kind of recommendation do you want? (1.operation 2.command 3.resource 4.service 5.mix): 3
+
+Please select the type of recommendation you need:
+1. all: It will intelligently analyze the types of recommendation you need, and may recommend multiple types of content to you
+2. solution: Only the solutions to problems when errors occur are recommend
+3. command: Only the commands with high correlation with previously executed commands are recommend
+4. resource: Only the resources related to previously created resources are recommended
+5. senario: Only the E2E scenarios related to current usage scenarios are recommended
+
+What kind of recommendation do you want? : 4
 
 1. az policy definition create
 Recommended reason: 78% users create a policy to set the security policy after creating the VM
@@ -97,7 +121,15 @@ Dig into more E2E scenarios and recommend them to customers.
 Log-analytics workspace created successfully...
 
 (env) PS C:\project> az next
-What kind of recommendation do you want? (1.operation 2.command 3.resource 4.service 5.mix): 4
+
+Please select the type of recommendation you need:
+1. all: It will intelligently analyze the types of recommendation you need, and may recommend multiple types of content to you
+2. solution: Only the solutions to problems when errors occur are recommend
+3. command: Only the commands with high correlation with previously executed commands are recommend
+4. resource: Only the resources related to previously created resources are recommended
+5. senario: Only the E2E scenarios related to current usage scenarios are recommended
+
+What kind of recommendation do you want? : 5
 
 az monitor log-analytics solution create
 Recommended reason: 72% users create a log-analytics solution to manage the workspace after creating the log-analytics workspace

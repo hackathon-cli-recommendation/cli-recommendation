@@ -25,7 +25,7 @@
         |command | string | true | - | The command used by customer |
         |param | JSON | false | None | The parameters used by customer |
         |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem |
-        |type | int | false | 1 | Recommendation type, value range: 1.operation 2.command 3.resource 4.service 5.mix |
+        |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
         |top_num | int | false | 5 | The maximum number of recommended items
 
     * Response Data:
