@@ -24,7 +24,7 @@ Please select the type of recommendation you need:
 4. resource: Only the resources related to previously created resources are recommended
 5. senario: Only the E2E scenarios related to current usage scenarios are recommended
 
-What kind of recommendation do you want? : 2
+What kind of recommendation do you want? (RETURN is to set all): 2
 
 az role assignment create
 Recommended reason: 97% users create a new role assignment for a user, group, or service when this error is encountered
@@ -57,7 +57,7 @@ Please select the type of recommendation you need:
 4. resource: Only the resources related to previously created resources are recommended
 5. senario: Only the E2E scenarios related to current usage scenarios are recommended
 
-What kind of recommendation do you want? : 3
+What kind of recommendation do you want? (RETURN is to set all): 3
 
 az policy assignment create
 Recommended reason: 92% users create a policy assignment to assign policy after creating the policy
@@ -90,7 +90,7 @@ Please select the type of recommendation you need:
 4. resource: Only the resources related to previously created resources are recommended
 5. senario: Only the E2E scenarios related to current usage scenarios are recommended
 
-What kind of recommendation do you want? : 4
+What kind of recommendation do you want? (RETURN is to set all): 4
 
 1. az policy definition create
 Recommended reason: 78% users create a policy to set the security policy after creating the VM
@@ -129,7 +129,7 @@ Please select the type of recommendation you need:
 4. resource: Only the resources related to previously created resources are recommended
 5. senario: Only the E2E scenarios related to current usage scenarios are recommended
 
-What kind of recommendation do you want? : 5
+What kind of recommendation do you want? (RETURN is to set all): 5
 
 az monitor log-analytics solution create
 Recommended reason: 72% users create a log-analytics solution to manage the workspace after creating the log-analytics workspace
