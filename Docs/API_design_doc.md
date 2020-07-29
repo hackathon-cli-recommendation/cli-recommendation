@@ -20,7 +20,7 @@
 
     * Request Parameters：
 
-        | Name | Type | Is Require | Default value | Description |
+        | Name | Type | Is Require | Default value | Description | 
         |----- |------| ---------  | ------------- | ----------- |
         |command | string | true | - | The command used by customer |
         |arugments | JSON | false | None | The arugments used by customer |
@@ -49,6 +49,7 @@
     * Example：
         
         Request exeample:
+        1. `POST` request:
         ```json
                 {
                     "command": "az deployment create",
@@ -58,6 +59,9 @@
                     "top_num": 10
                 }
         ```
+        
+        2. `GET` request:
+        https://cli-recommendation.azurewebsites.net/api/RecommendationService?command=%7Bcommand%7D&top_num=%7Btop_num%7D
 
         Response exeample:
         ```json
