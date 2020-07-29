@@ -23,7 +23,7 @@
         | Name | Type | Is Require | Default value | Description |
         |----- |------| ---------  | ------------- | ----------- |
         |command | string | true | - | The command used by customer |
-        |param | JSON | false | None | The parameters used by customer |
+        |arugments | JSON | false | None | The arugments used by customer |
         |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem |
         |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
         |top_num | int | false | 5 | The maximum number of recommended items
@@ -40,11 +40,11 @@
         | Name | Type | Description |
         |----- |------|-------------|
         | command | string | Recommended command |
-        | param   | JSON | Recommended parameters |
+        | arugments   | JSON | Recommended arugments |
         | reason | string | Recommended reason |
         | ratio | float | Usage percentage |
         | score | float | Relevancy score |
-       
+        |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
 
     * Example：
         
@@ -52,7 +52,7 @@
         ```json
                 {
                     "command": "az deployment create",
-                    "param": "['-l', '-f', '-p']",
+                    "arugments": "['-l', '-f', '-p']",
                     "extra_data": "'ErrorType': 'AuthorizationFailed', 'Message':'The client 'xxx' with object id 'xxx' does not have authorization to perform action...' ",
                     "type": 1,
                     "top_num": 10
@@ -67,17 +67,19 @@
                     "data": [
                         {
                             "command": "az role assignment create",
-                            "param": "['--role', '--assignee']",
+                            "arugments": "['--role', '--assignee']",
                             "reason": "The customers create a new role assignment for a user, group, or service when this error is encountered",
                             "ratio": 49,
-                            "score": 95
+                            "score": 95,
+                            "type": 1
                         },
                         {
                             "command": "az role assignment create",
-                            "param": "['--role', '--assignee-object-id']",
+                            "arugments": "['--role', '--assignee-object-id']",
                             "reason": "The customers create a new role assignment for a user, group, or service when this error is encountered",
                             "ratio": 32,
-                            "score": 90
+                            "score": 90,
+                            "type": 1
                         }
                     ]
                 }
