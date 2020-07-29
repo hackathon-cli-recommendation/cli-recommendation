@@ -2,15 +2,15 @@
 
 |  API  | Description |
 |------ |----- |
-|[http://azure-cli.azurewebsites.net/orchestrators/recommendation](#recommendation)| Get recommended data|
+|[https://cli-recommendation.azurewebsites.net/api/RecommendationService](#recommendation)| Get recommended data|
 
 ## API Detail
 
 * <span id = "recommendation">Get recommended data</span>
 
-    * Request URL：http://azure-cli.azurewebsites.net/orchestrators/recommendation
+    * Request URL：https://cli-recommendation.azurewebsites.net/api/RecommendationService
 
-    * Request Method：`POST`
+    * Request Method：`POST` or `GET`
 
     * Request Format：`JSON`
 
@@ -33,7 +33,7 @@
         | Name | Type | Description |
         |----- |------|-------------|
         | status | int | Status code |
-        | error_code | int | Error code |
+        | error | JSON | Error information |
         | data | JSON (list) | [Recommended data](#recommended_data) |
 
         <span id = "recommended_data">Recommended data</span>
@@ -63,7 +63,7 @@
         ```json
                 {
                     "status": 200,
-                    "error_code": null,
+                    "error": null,
                     "data": [
                         {
                             "command": "az role assignment create",
