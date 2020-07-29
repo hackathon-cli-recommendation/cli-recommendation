@@ -69,7 +69,7 @@
                             "command": "az role assignment create",
                             "arugments": "['--role', '--assignee']",
                             "reason": "The customers create a new role assignment for a user, group, or service when this error is encountered",
-                            "ratio": 49,
+                            "ratio": 0.49,
                             "score": 95,
                             "type": 1
                         },
@@ -77,7 +77,7 @@
                             "command": "az role assignment create",
                             "arugments": "['--role', '--assignee-object-id']",
                             "reason": "The customers create a new role assignment for a user, group, or service when this error is encountered",
-                            "ratio": 32,
+                            "ratio": 0.32,
                             "score": 90,
                             "type": 1
                         }
