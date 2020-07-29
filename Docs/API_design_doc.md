@@ -20,13 +20,13 @@
 
     * Request Parameters：
 
-        | Name | Type | Is Require | Default value | Description | 
-        |----- |------| ---------  | ------------- | ----------- |
-        |command | string | true | - | The command used by customer |
-        |arugments | JSON | false | None | The arugments used by customer |
-        |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem |
-        |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
-        |top_num | int | false | 5 | The maximum number of recommended items
+        | Name | Type | Is Require | Default value | Description | Supported |
+        |----- |------| ---------  | ------------- | ----------- | --------- |
+        |command | string | true | - | The command used by customer | Yes |
+        |arugments | JSON | false | None | The arugments used by customer | No |
+        |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem | No |
+        |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario | Yes |
+        |top_num | int | false | 5 | The maximum number of recommended items | Yes |
 
     * Response Data:
 
@@ -61,7 +61,7 @@
         ```
         
         2. `GET` request:
-        https://cli-recommendation.azurewebsites.net/api/RecommendationService?command=az%20group%20create&top_num=2
+        https://cli-recommendation.azurewebsites.net/api/RecommendationService?command=az%20deployment%20create&top_num=2&type=1
 
         Response exeample:
         ```json
