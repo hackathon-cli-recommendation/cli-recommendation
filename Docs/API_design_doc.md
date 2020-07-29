@@ -61,7 +61,7 @@
         ```
         
         2. `GET` request:
-        https://cli-recommendation.azurewebsites.net/api/RecommendationService?command=%7Bcommand%7D&top_num=%7Btop_num%7D
+        https://cli-recommendation.azurewebsites.net/api/RecommendationService?command=az%20group%20create&top_num=2
 
         Response exeample:
         ```json
