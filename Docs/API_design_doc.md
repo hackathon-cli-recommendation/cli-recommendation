@@ -44,7 +44,7 @@
         | reason | string | Recommended reason |
         | ratio | float | Usage percentage |
         | score | float | Relevancy score |
-        |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
+        |type | int | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario |
 
     * Example：
         
