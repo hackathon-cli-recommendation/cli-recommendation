@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "CosmosDB_Endpoint": "https://cli-recommendation.documents.azure.com:443/",
+    "CosmosDB_Key": "TH3mBqEkIFOEIQNQg7Wa4ed3FdvRWYBQ2dQtSPmNHcXTITas5vCA3DcXAfRIAFAmXyrdcPG22qdWnirdTuFXGg=="
+  }
+}
