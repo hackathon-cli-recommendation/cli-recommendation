@@ -1,4 +1,6 @@
-# Overview
+# CLI Recommendation
+
+## Overview
 ### 1. What's the project?
 This is a recommendation system based on customer behavior analysis, it performs big-data analysis from the Telemetry log to calculate the behavior tracks of most customers for usage recommendations in CLI.
 ### 2. What problem does it solve?
@@ -14,7 +16,7 @@ So what we're doing is an in-tool guidence which can reduce customer's learning 
 
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Annotation%202020-07-30%20222354.png)
 
-# Applicable Scenarios
+## Applicable Scenarios
 ### 1. solution
 When a customer executes a command with some kind of error, recommend the next command that the vast majority of users execute and ask him to confirm whether to execute it. This reduces the process of the customer's troubleshooting and command input
 
@@ -155,7 +157,7 @@ Please input workspace (The name or resource ID of the log analytics workspace w
 
 ```
 
-# Process design
+## Process design
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Annotation%202020-07-19%20150631.png)
 
 #### 1. Use telemetry to collect and record the customer uasge of CLI. Since most of the required data already exists, the cold start problem of the algorithm is avoided.
@@ -179,7 +181,7 @@ Please input workspace (The name or resource ID of the log analytics workspace w
 
 #### 6. The user's adoption of the recommended content is collected by Telemetry as the feedback data, and then continuously optimizes the recommendation scheme of the recommendation system.
 
-# Technical architecture
+## Technical architecture
 ### 1. Overall architecture
 In this recommendation scene, the real-time requirement of the recommendation content is not high (the updating frequency of the recommendation content is low), but the response speed of obtaining the recommendation results is higher.
 Therefore, the architecture of offline computing can be considered to cache the calculated results into storage periodically and provide users with direct query recommendation results through the REST API of Web Service.
@@ -192,7 +194,7 @@ Therefore, the architecture of offline computing can be considered to cache the 
 
 * **Schedule Task**: Most scheduled tasks can be met, there are currently no complex distributed scheduling and task dependency scenarios. It is recommended to try Azure Scheduler, it can support advanced settings such as task status visualization and retry strategy, making tasks more robust and running with lower maintenance costs.
 
-# Other questions
+## Other questions
 1. Is there any other recommendation algorithm that is applicable and easy to implement?
 2. What is the more appropriate technology stack for part modules
 3. What is the development and maintenance costs that this system will bear 
