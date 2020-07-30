@@ -2,7 +2,17 @@
 ### 1. What's the project?
 This is a recommendation system based on customer behavior analysis: performs big-data analysis from the Telemetry log to calculate the behavior tracks of most customers for usage recommendations in CLI.
 ### 2. What problem does it solve?
-Help the new customers quickly pick up the commands they need and recommend other potential requirements to them. It is an in-tool guidence which can reduce customer's learning cost and improves use efficiency.
+At present, there are some problems in usage experience for CLI：
+- ❌ There are too many commands, and the association is complex. The CLI beginners often does not know what the command corresponding to his requirements is
+- ❌ Most of the knowledge customers need can only be obtained by searching in the documents, so the learning cost is high
+- ❌ The operation steps of some scenarios are too complex, the interaction is not intelligent enough, so the operation efficiency is low
+
+So what we're doing is an in-tool guidence which can reduce customer's learning cost and improves use efficiency:
+- ✔ Help the CLI beginners quickly pick up the commands they need 
+- ✔ Provide a simpler and smoother interaction experience
+- ✔ Recommend other potential requirements to customers
+
+![avatar](https://github.com/zhoxing-ms/image/blob/master/Annotation%202020-07-30%20222354.png)
 
 # Applicable Scenarios
 ### 1. solution
