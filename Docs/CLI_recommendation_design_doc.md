@@ -1,6 +1,6 @@
 # Overview
 ### 1. What's the project?
-This is a recommendation system based on customer behavior analysis: performs big-data analysis from the Telemetry log to calculate the behavior tracks of most customers for usage recommendations in CLI.
+This is a recommendation system based on customer behavior analysis, it performs big-data analysis from the Telemetry log to calculate the behavior tracks of most customers for usage recommendations in CLI.
 ### 2. What problem does it solve?
 At present, there are some problems in usage experience for CLI：
 - ❌ There are too many commands, and the association is complex. The CLI beginners often does not know what the command corresponding to his requirements is
