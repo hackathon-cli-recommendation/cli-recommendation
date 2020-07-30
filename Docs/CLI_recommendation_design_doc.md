@@ -5,7 +5,7 @@ This is a recommendation system based on customer behavior analysis: performs bi
 Help the new customers quickly pick up the commands they need and recommend other potential requirements to them. It is an in-tool guidence which can reduce customer's learning cost and improves use efficiency.
 
 # Applicable Scenarios
-### 1. az next solution
+### 1. solution
 When a customer executes a command with some kind of error, recommend the next command that the vast majority of users execute and ask him to confirm whether to execute it. This reduces the process of the customer's troubleshooting and command input
 
 *For example, when a customer fails to execute a command due to an unknown permission problem, it is directly recommended to the next command that most users use to apply for a certain permission, and let him confirm whether to execute it.* 
@@ -39,7 +39,7 @@ Please input scope (Scope at which the role assignment or definition applies to)
 ...
 ```
 
-### 2. az next command
+### 2. command
 When a customer executes a command, it is recommended that other groups of commands be used most frequently by users who also executed the same command.
 
 *For example, there are the following possible common command combination recommendations: 'az policy definition create' --> 'az policy assignment create', 'az deployment sub validate' --> 'az deployment sub what-if' --> 'az deployment sub create' ...*
@@ -72,7 +72,7 @@ Please input scope (Scope to which this policy assignment applies): /subscriptio
 ...
 ```
 
-### 3. az next resource
+### 3. resource
 After a customer has created a certain type of resource, it is recommended to the next type of resource that most users who have created the same resource will create. Help the customer find more resources that might be helpful to him.
 
 *For example, after creating a VM, most users will create a policy to ensure the security of resources. Therefore, the policy resource can be recommended to the user who has just created the VM* 
@@ -111,7 +111,7 @@ Please input rules (Policy rules in JSON format, or a path to a file containing 
 ...
 ```
 
-### 4. az next service
+### 4. senario
 Dig into more E2E scenarios and recommend them to customers.
 
 *For example, many users are associated with some RP scenarios, and we can design a new E2E Service by analyzing the data of these scenarios. When a user uses one of the RP, we can recommend the new E2E Service to him.*
