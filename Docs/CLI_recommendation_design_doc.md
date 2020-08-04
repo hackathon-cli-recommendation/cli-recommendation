@@ -194,6 +194,17 @@ Therefore, the architecture of offline computing can be considered to cache the 
 
 * **Schedule Task**: Most scheduled tasks can be met, there are currently no complex distributed scheduling and task dependency scenarios. It is recommended to try Azure Scheduler, it can support advanced settings such as task status visualization and retry strategy, making tasks more robust and running with lower maintenance costs.
 
+## Project plan
+* In the early stage of the project, we will analyze the actual effect of data calculation, and first find out the data scenarios with good recommendation effect and strong correlation to conduct the key recommendation test (such as: solution and senario recommendation).
+Then according to the customer's adoption feedback, the system is continuously optimized.
+
+* In the middle stage of the project, we gradually try to solve some recommendation scenarios with higher difficulty, but which belonged to customer's pain points and were of great help to customers, so as to further enhance the recommendation ability of the system.
+
+* In the later stage of the project, we will continue to improve the system to support more comprehensive recommendation scenarios, and have different personalized recommendation configurations according to the characteristics of different business scenarios.
+
+* After the completion of the project, we began to cooperate with all parties to enhance the capability scope of the system. For example, working with the Alladin team to enable it to recommend examples. Working with other clinet terminals (such as: PowerShell, Terraform) to help them reuse the capabilities of our recommendation system as well.
+
+
 ## Other questions
 1. Is there any other recommendation algorithm that is applicable and easy to implement?
 2. What is the more appropriate technology stack for part modules
