@@ -4,6 +4,7 @@ import logging
 import azure.functions as func
 import os
 import json
+from .util import generated_cosmos_type, need_error_info
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -25,26 +26,55 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "type" must be the type of int', status_code=400)
 
+    try:
+        error_info = get_param_str(req, 'error_info')
+    except ValueError:
+        return func.HttpResponse('Illegal parameter: the parameter "error_info" must be the type of string', status_code=400)
+
     client = CosmosClient(os.environ["CosmosDB_Endpoint"], os.environ["CosmosDB_Key"])
-    database = client.create_database_if_not_exists(id="cli-recommendation")
-    container = database.create_container_if_not_exists(id="recommendation-without-arguments", partition_key=PartitionKey(path="/command"))
+    database = client.create_database_if_not_exists(id=os.environ["CosmosDB_DataBase"])
+    recommendation_container = database.create_container_if_not_exists(id=os.environ["Recommendation_Container"], partition_key=PartitionKey(path="/command"))
+    knowledge_base_container = database.create_container_if_not_exists(id=os.environ["KnowledgeBase_Container"], partition_key=PartitionKey(path="/command"))
 
     query = "SELECT * FROM c WHERE c.command = '{}' ".format(command)
-    query_items = list(container.query_items(query=query, enable_cross_partition_query=True))
 
-    if not query_items:
-        return func.HttpResponse('{}', status_code=200)
+    cosmos_type =  generated_cosmos_type(recommend_type, error_info)
+    if cosmos_type:
+        query += " and c.type = {} ".format(cosmos_type)
+
+    # If there is an error message, recommend the solution first
+    if error_info and need_error_info(recommend_type):
+        query += " and CONTAINS(c.errorInformation, '{}', true) ".format(error_info)
 
     result = []
+
+    # load bussniss knowleage
+    knowledge_base_items = list(knowledge_base_container.query_items(query=query, enable_cross_partition_query=True))
+    if knowledge_base_items:
+        for item in knowledge_base_items:
+            if item and 'nextCommand' in item:
+                for command_info in item['nextCommand']:
+                    result.append(command_info)
+
+    # load recommendation items
+    query_items = list(recommendation_container.query_items(query=query, enable_cross_partition_query=True))
+
+    recommendation_items = []
     for item in query_items:
         if item and 'nextCommand' in item:
             for command_info in item['nextCommand']:
-                if not recommend_type or recommend_type == command_info['type']:
-                    command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
-                    result.append(command_info)
+                command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
+                recommendation_items.append(command_info)
+
+    if recommendation_items:
+        recommendation_items = sorted(recommendation_items, key=lambda x: x['ratio'], reverse=True)
+        result.extend(recommendation_items)
 
     if top_num:
         result = result[0: top_num]
+
+    if not result:
+        return func.HttpResponse('{}', status_code=200)
 
     return func.HttpResponse(generate_response(data=result, status=200))
 

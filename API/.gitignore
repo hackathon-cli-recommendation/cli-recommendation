@@ -127,3 +127,4 @@ bin
 obj
 .python_packages
 .vscode
+local.settings.json
