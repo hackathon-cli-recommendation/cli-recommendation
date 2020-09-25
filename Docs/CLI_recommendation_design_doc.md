@@ -207,8 +207,11 @@ Therefore, the architecture of offline computing can be considered to cache the 
 * **Web Service (Function HttpTrigger)**: Query and aggregate data of result storage and knowleage base to provide a Rest recommendation service(serverless) for CLI.
 
 ## Algorithm design
-### 1. Recommendation calculation
+### 1. Offline calculation of recommended content
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/2.png)
+
+### 2. Real-time recommendation service
+![avatar](https://github.com/zhoxing-ms/image/blob/master/3.png)
 
 ## Project plan
 * In the early stage of the project, we will analyze the actual effect of data calculation, and first find out the data scenarios with good recommendation effect and strong correlation to conduct the key recommendation test (such as: solution and senario recommendation).
