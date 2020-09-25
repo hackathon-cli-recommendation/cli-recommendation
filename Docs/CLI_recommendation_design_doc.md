@@ -197,8 +197,8 @@ Therefore, the architecture of offline computing can be considered to cache the 
 * **Data Preproccess(Function Chaining)**: Data cleaning, conversion, preprocessing.
 
 * **Schedule Task（Function Timer)**: Using collaborative filtering and hotspot ranking to calculate recommendation content offline.
-1. **Full Benchmark Task**: Long period full calculation to ensure that the life cycle of the data involved in the calculation is reasonable and eliminate outdated recommendation content.If there is a new recommendation content, the original recommendation results will be overwritten; otherwise, the original recommendation results will be retained.
-2. **Incremental Sync Task**: Short execution period, provide more real-time calculation of recommended content.
+  1. ***Full Benchmark Task***: Long period full calculation to ensure that the life cycle of the data involved in the calculation is reasonable and eliminate outdated recommendation content.If there is a new recommendation content, the original recommendation results will be overwritten; otherwise, the original recommendation results will be retained.
+  2. ***Incremental Sync Task***: Short execution period, provide more real-time calculation of recommended content.
 
 * **Result Storage (Cosmos)**: Store the calculation results as documents
 
