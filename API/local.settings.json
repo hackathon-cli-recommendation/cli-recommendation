@@ -3,10 +3,10 @@
   "Values": {
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "python",
-    "CosmosDB_Endpoint": "******",
-    "CosmosDB_Key": "******",
-    "CosmosDB_DataBase": "******",
-    "Recommendation_Container": "******",
-    "KnowledgeBase_Container": "******"
+    "CosmosDB_Endpoint": "https://cli-recommendation.documents.azure.com:443/",
+    "CosmosDB_Key": "1oW8gZdLFnmM5coVjXtJHniyTSLYNOFCjeo9Ip6jUwzlDGStaMsaWyZlXYyTZRan9Kqw6ru7jgXcgQHqValGdw==",
+    "CosmosDB_DataBase": "cli-recommendation",
+    "Recommendation_Container": "recommendation-offline",
+    "KnowledgeBase_Container": "knowledge-base"
   }
 }

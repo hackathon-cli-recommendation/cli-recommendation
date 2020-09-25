@@ -128,3 +128,4 @@ obj
 .python_packages
 .vscode
 local.settings.json
+local_settings.py
