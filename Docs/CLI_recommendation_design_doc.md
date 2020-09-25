@@ -157,7 +157,7 @@ Please input workspace (The name or resource ID of the log analytics workspace w
 
 ```
 
-## Process design
+## Bussiness process
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Annotation%202020-07-19%20150631.png)
 
 #### 1. Use telemetry to collect and record the customer uasge of CLI. Since most of the required data already exists, the cold start problem of the algorithm is avoided.
@@ -193,6 +193,10 @@ Therefore, the architecture of offline computing can be considered to cache the 
 * **Cache/Storage**: NoSQL (such as CosmosDB). Because there is no need to store massive data for the time being, and there is no complex structured query and word segmentation query scenario, It is enough to support key-value query in the early stage. But it needs to support fast queries and data persistence.
 
 * **Schedule Task**: Most scheduled tasks can be met, there are currently no complex distributed scheduling and task dependency scenarios. It is recommended to try Azure Scheduler, it can support advanced settings such as task status visualization and retry strategy, making tasks more robust and running with lower maintenance costs.
+
+## Algorithm design
+### 1. Recommendation calculation
+![avatar](https://github.com/zhoxing-ms/image/blob/master/2.png)
 
 ## Project plan
 * In the early stage of the project, we will analyze the actual effect of data calculation, and first find out the data scenarios with good recommendation effect and strong correlation to conduct the key recommendation test (such as: solution and senario recommendation).
