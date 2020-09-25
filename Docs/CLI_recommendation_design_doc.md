@@ -188,11 +188,23 @@ Therefore, the architecture of offline computing can be considered to cache the 
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/1.png)
 
 ### 2. Technical selection of specific modules
-* **Web Service**: FaaS (such as Function App). Because it is a Serverless architecture, there is no need to deploy the complete server system, but only deploy the code of relevant functions. The cost of development and maintenance is small, the granularity of resource use is fine, and the charge is based on the usage of the API.
+* **CLI**: Send command records, command results and recommendation feedback to Telemetry.
 
-* **Cache/Storage**: NoSQL (such as CosmosDB). Because there is no need to store massive data for the time being, and there is no complex structured query and word segmentation query scenario, It is enough to support key-value query in the early stage. But it needs to support fast queries and data persistence.
+* **Telemetry**: It is a log collection platform.
 
-* **Schedule Task**: Most scheduled tasks can be met, there are currently no complex distributed scheduling and task dependency scenarios. It is recommended to try Azure Scheduler, it can support advanced settings such as task status visualization and retry strategy, making tasks more robust and running with lower maintenance costs.
+* **Kusto(ADE)**: Kusto is a fast, fully managed data analytics service for real-time analysis on big data.
+
+* **Data Preproccess(Function Chaining)**: Data cleaning, conversion, preprocessing.
+
+* **Schedule Task（Function Timer)**: Using collaborative filtering and hotspot ranking to calculate recommendation content offline.
+1. **Full Benchmark Task**: Long period full calculation to ensure that the life cycle of the data involved in the calculation is reasonable and eliminate outdated recommendation content.If there is a new recommendation content, the original recommendation results will be overwritten; otherwise, the original recommendation results will be retained.
+2. **Incremental Sync Task**: Short execution period, provide more real-time calculation of recommended content.
+
+* **Result Storage (Cosmos)**: Store the calculation results as documents
+
+* **Knowleage Base (Cosmos)**: Configurable business knowledge, data can come from internal input, customer feedback, and crawlers crawling data such as Github issue.
+
+* **Web Service (Function HttpTrigger)**: Query and aggregate data of result storage and knowleage base to provide a Rest recommendation service(serverless) for CLI.
 
 ## Algorithm design
 ### 1. Recommendation calculation
