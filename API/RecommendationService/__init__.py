@@ -4,7 +4,7 @@ import logging
 import azure.functions as func
 import os
 import json
-from .util import generated_cosmos_type, need_error_info
+from .util import generated_cosmos_type, need_error_info, parse_error_info
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -44,7 +44,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     # If there is an error message, recommend the solution first
     if error_info and need_error_info(recommend_type):
-        query += " and CONTAINS(c.errorInformation, '{}', true) ".format(error_info)
+        error_info_arr = parse_error_info(error_info)
+        for info in error_info_arr:
+            query += " and CONTAINS(c.errorInformation, '{}', true) ".format(info)
 
     result = []
 

@@ -1,4 +1,6 @@
+import re
 from enum import Enum
+
 class RecommandType(int, Enum):
     All = 1
     Solution = 2
@@ -38,3 +40,11 @@ def need_error_info(recommand_type):
     if recommand_type in [ RecommandType.All, RecommandType.Solution]:
         return True
     return False
+
+def parse_error_info(error_info):
+    ''' Ignore the value and put the other parts into the array '''
+    if not error_info:
+        return []
+    split_str = "|*Split*|"
+    error_info = re.sub("\|(.*?)\|", split_str, error_info)
+    return error_info.split(split_str)
