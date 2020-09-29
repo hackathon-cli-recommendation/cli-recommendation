@@ -66,7 +66,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if item and 'nextCommand' in item:
             for command_info in item['nextCommand']:
                 command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
-                recommendation_items.append(command_info)
+                if command_info['ratio'] * 100 >= int(os.environ["Recommendation_Threshold"]):
+                    recommendation_items.append(command_info)
 
     if recommendation_items:
         recommendation_items = sorted(recommendation_items, key=lambda x: x['ratio'], reverse=True)

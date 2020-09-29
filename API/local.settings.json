@@ -7,6 +7,7 @@
     "CosmosDB_Key": "1oW8gZdLFnmM5coVjXtJHniyTSLYNOFCjeo9Ip6jUwzlDGStaMsaWyZlXYyTZRan9Kqw6ru7jgXcgQHqValGdw==",
     "CosmosDB_DataBase": "cli-recommendation",
     "Recommendation_Container": "recommendation-offline",
-    "KnowledgeBase_Container": "knowledge-base"
+    "KnowledgeBase_Container": "knowledge-base",
+    "Recommendation_Threshold": "20"
   }
 }
