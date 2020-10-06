@@ -39,7 +39,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     query = "SELECT * FROM c WHERE c.command = '{}' ".format(command)
 
     cosmos_type =  generated_cosmos_type(recommend_type, error_info)
-    if cosmos_type:
+    if isinstance(cosmos_type, str):
+        query += " and c.type in ({}) ".format(cosmos_type)
+    else:
         query += " and c.type = {} ".format(cosmos_type)
 
     # If there is an error message, recommend the solution first
@@ -54,7 +56,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     knowledge_base_items = list(knowledge_base_container.query_items(query=query, enable_cross_partition_query=True))
     if knowledge_base_items:
         for item in knowledge_base_items:
-            if item and 'nextCommand' in item:
+            if 'nextCommandSet' in item:
+                scenario = {
+                    'scenario': item['scenario'],
+                    'nextCommandSet': item['nextCommandSet']
+                }
+                result.append(scenario)
+
+            if 'nextCommand' in item:
                 for command_info in item['nextCommand']:
                     result.append(command_info)
 

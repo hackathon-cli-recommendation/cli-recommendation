@@ -11,6 +11,7 @@ class RecommandType(int, Enum):
 class CosmosType(int, Enum):
     Command = 1
     Solution = 2
+    Scenario = 3
 
 def get_cosmos_type(recommand_type):
     if not recommand_type:
@@ -18,7 +19,8 @@ def get_cosmos_type(recommand_type):
 
     recommand_to_cosmos = {
         RecommandType.Command : CosmosType.Command,
-        RecommandType.Solution : CosmosType.Solution
+        RecommandType.Solution : CosmosType.Solution,
+        RecommandType.Senario : CosmosType.Scenario
     }
     try:
         return recommand_to_cosmos[recommand_type]
@@ -34,7 +36,7 @@ def generated_cosmos_type(recommand_type, has_error):
         if has_error:
             return CosmosType.Solution
         else:
-            return CosmosType.Command
+            return str(CosmosType.Senario) + "," + str(CosmosType.Command)
 
 def need_error_info(recommand_type):
     if recommand_type in [ RecommandType.All, RecommandType.Solution]:
