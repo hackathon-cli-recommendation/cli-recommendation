@@ -41,7 +41,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     cosmos_type =  generated_cosmos_type(recommend_type, error_info)
     if isinstance(cosmos_type, str):
         query += " and c.type in ({}) ".format(cosmos_type)
-    else:
+    elif isinstance(cosmos_type, int):
         query += " and c.type = {} ".format(cosmos_type)
 
     # If there is an error message, recommend the solution first
