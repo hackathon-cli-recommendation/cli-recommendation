@@ -61,6 +61,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     'scenario': item['scenario'],
                     'nextCommandSet': item['nextCommandSet']
                 }
+                if 'reason' in item:
+                    scenario['reason'] = item['reason']
                 result.append(scenario)
 
             if 'nextCommand' in item:
