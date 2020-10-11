@@ -185,7 +185,7 @@ Please input workspace (The name or resource ID of the log analytics workspace w
 ### 1. Overall architecture
 In this recommendation scene, the real-time requirement of the recommendation content is not high (the updating frequency of the recommendation content is low), but the response speed of obtaining the recommendation results is higher.
 Therefore, the architecture of offline computing can be considered to cache the calculated results into storage periodically and provide users with direct query recommendation results through the REST API of Web Service.
-![avatar](https://github.com/zhoxing-ms/image/blob/master/1.png)
+![avatar](https://github.com/zhoxing-ms/image/blob/master/%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
 
 ### 2. Technical selection of specific modules
 * **CLI**: Send command records, command results and recommendation feedback to Telemetry.
@@ -206,12 +206,9 @@ Therefore, the architecture of offline computing can be considered to cache the 
 
 * **Web Service (Function HttpTrigger)**: Query and aggregate data of result storage and knowleage base to provide a Rest recommendation service(serverless) for CLI.
 
-## Algorithm design
-### 1. Offline calculation of recommended content
-![avatar](https://github.com/zhoxing-ms/image/blob/master/2.png)
+## Calculation
+![avatar](https://github.com/zhoxing-ms/image/blob/master/%E7%AE%97%E6%B3%95%E5%9B%BE.png)
 
-### 2. Real-time recommendation service
-![avatar](https://github.com/zhoxing-ms/image/blob/master/3.png)
 
 ## Project plan
 * In the early stage of the project, we will analyze the actual effect of data calculation, and first find out the data scenarios with good recommendation effect and strong correlation to conduct the key recommendation test (such as: solution and senario recommendation).
