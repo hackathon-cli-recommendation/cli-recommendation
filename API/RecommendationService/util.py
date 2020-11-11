@@ -42,6 +42,11 @@ def need_error_info(Recommend_type):
         return True
     return False
 
+def need_aladdin_recommendation(Recommend_type):
+    if Recommend_type in [ RecommendType.All, RecommendType.Command]:
+        return True
+    return False
+
 def parse_error_info(error_info):
     ''' Ignore the value and put the other parts into the array '''
     if not error_info:
