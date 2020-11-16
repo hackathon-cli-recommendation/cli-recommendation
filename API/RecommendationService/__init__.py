@@ -1,8 +1,13 @@
 import azure.functions as func
 import json
+import os
 
-from .cosmos_service import get_recommend_from_cosmos
+from functools import reduce
+
+from .knowledge_base_service import get_recommend_from_knowledge_base
+from .offline_data_service import get_recommend_from_cosmos
 from .aladdin_service import get_recommend_from_aladdin
+
 from .util import need_aladdin_recommendation
 
 
@@ -50,17 +55,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "user_id" must be the type of string', status_code=400)
 
-    # get the recommendation of offline caculation from cosmos
-    result = get_recommend_from_cosmos(command_list, recommend_type, top_num, error_info)
+    # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
+    knowledge_base_items = get_recommend_from_knowledge_base(command_list, recommend_type, error_info)
+    if len(knowledge_base_items) >= top_num:
+        return func.HttpResponse(generate_response(data=knowledge_base_items[0: top_num], status=200))
 
-    # get the recommendation of offline caculation from aladdin
-    if need_aladdin_recommendation(recommend_type):
-        aladdin_result = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num)
-        result.extend(aladdin_result)
+    # Get the recommendation of offline caculation from cosmos
+    calculation_items = get_recommend_from_cosmos(command_list, recommend_type, error_info)
 
-    # TODO SORT
-    # TODO DUPLICATE
+    # Get the recommendation from Aladdin
+    aladdin_items = []
+    if need_aladdin_recommendation(recommend_type, error_info):
+        aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
 
+    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items, top_num)
     if not result:
         return func.HttpResponse('{}', status_code=200)
 
@@ -98,3 +106,68 @@ def generate_response(data, status, error=None):
         'status': status
     }
     return json.dumps(response_data)
+
+
+# Merge and sort multiple data sources
+def merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items, top_num):
+
+    result = knowledge_base_items
+
+    # Record recommended commands for duplicate removal
+    exist_commands = []
+    if knowledge_base_items:
+        for item in knowledge_base_items:
+            if 'command' in item:
+                exist_commands.append(item['command'])
+
+    # Merge calculation_items and aladdin_items, and sort them interleaved
+    command_index = 0
+    commands_from_recommendation = []
+    while(command_index < len(calculation_items) and command_index < len(aladdin_items)):
+        aladdin_command = aladdin_items[command_index]['command']
+        calculation_command = calculation_items[command_index]['command']
+
+        if os.environ["Recommendation_Prefer"] == "1":
+            if calculation_command not in exist_commands:
+                commands_from_recommendation.append(calculation_items[command_index])
+                exist_commands.append(calculation_command)
+            if aladdin_command not in exist_commands:
+                commands_from_recommendation.append(aladdin_items[command_index])
+                exist_commands.append(aladdin_command)
+
+        else:
+            if aladdin_command not in exist_commands:
+                commands_from_recommendation.append(aladdin_items[command_index])
+                exist_commands.append(aladdin_command)
+            if calculation_command not in exist_commands:
+                commands_from_recommendation.append(calculation_items[command_index])
+                exist_commands.append(calculation_command)
+
+        if len(knowledge_base_items) + len(commands_from_recommendation) >= top_num:
+            result.extend(commands_from_recommendation)
+            return result[0: top_num]
+
+        command_index = command_index + 1
+
+    remaining_size = top_num - len(knowledge_base_items)
+    commands_from_recommendation = merge_remaining_items(command_index, calculation_items, exist_commands, commands_from_recommendation, remaining_size)
+    commands_from_recommendation = merge_remaining_items(command_index, aladdin_items, exist_commands, commands_from_recommendation, remaining_size)
+
+    result.extend(commands_from_recommendation)
+    return result[0: top_num]
+
+
+def merge_remaining_items(command_index, items, exist_commands, commands_from_recommendation, remaining_size):
+    while command_index < len(items):
+
+        command = items[command_index]['command']
+        if command not in exist_commands:
+            commands_from_recommendation.append(items[command_index])
+            exist_commands.append(command)
+
+        if len(commands_from_recommendation) == remaining_size:
+            return commands_from_recommendation
+
+        command_index = command_index + 1
+
+    return commands_from_recommendation

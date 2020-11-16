@@ -1,4 +1,6 @@
 import re
+import json
+
 from enum import Enum
 
 class RecommendType(int, Enum):
@@ -12,8 +14,9 @@ class CosmosType(int, Enum):
     Solution = 2
     Scenario = 3
 
-def get_cosmos_type(Recommend_type):
-    if not Recommend_type:
+
+def get_cosmos_type(recommend_type):
+    if not recommend_type:
         return
 
     Recommend_to_cosmos = {
@@ -22,30 +25,36 @@ def get_cosmos_type(Recommend_type):
         RecommendType.Scenario : CosmosType.Scenario
     }
     try:
-        return Recommend_to_cosmos[Recommend_type]
+        return Recommend_to_cosmos[recommend_type]
     except KeyError:
         return None
 
-def generated_cosmos_type(Recommend_type, has_error):
-    cosmos_type = get_cosmos_type(Recommend_type)
+
+def generated_cosmos_type(recommend_type, has_error):
+    cosmos_type = get_cosmos_type(recommend_type)
     if cosmos_type:
         return cosmos_type
     
-    if Recommend_type == RecommendType.All:
+    if recommend_type == RecommendType.All:
         if has_error:
             return CosmosType.Solution
         else:
             return str(CosmosType.Scenario.value) + "," + str(CosmosType.Command.value)
 
-def need_error_info(Recommend_type):
-    if Recommend_type in [ RecommendType.All, RecommendType.Solution]:
+
+def need_error_info(recommend_type):
+    if recommend_type in [ RecommendType.All, RecommendType.Solution]:
         return True
     return False
 
-def need_aladdin_recommendation(Recommend_type):
-    if Recommend_type in [ RecommendType.All, RecommendType.Command]:
+
+def need_aladdin_recommendation(recommend_type, error_info):
+    if recommend_type == RecommendType.Command:
+        return True
+    if recommend_type == RecommendType.All and not error_info:
         return True
     return False
+
 
 def parse_error_info(error_info):
     ''' Ignore the value and put the other parts into the array '''
@@ -54,3 +63,30 @@ def parse_error_info(error_info):
     split_str = "|*Split*|"
     error_info = re.sub("\|(.*?)\|", split_str, error_info)
     return error_info.split(split_str)
+
+
+def get_latest_cmd(command_list):
+    command_data = json.loads(command_list)
+    # If there is no command has been executed before, assume that the user's first command is "group create"
+    if len(command_data) == 0:
+        return "group create"
+    latest_cmd = json.loads(command_data[-1])
+    return latest_cmd['command']
+
+
+def generated_query_kql(command, recommend_type, error_info):
+    query = "SELECT * FROM c WHERE c.command = '{}' ".format(command)
+
+    cosmos_type =  generated_cosmos_type(recommend_type, error_info)
+    if isinstance(cosmos_type, str):
+        query += " and c.type in ({}) ".format(cosmos_type)
+    elif isinstance(cosmos_type, int):
+        query += " and c.type = {} ".format(cosmos_type)
+
+    # If there is an error message, recommend the solution first
+    if error_info and need_error_info(recommend_type):
+        error_info_arr = parse_error_info(error_info)
+        for info in error_info_arr:
+            query += " and CONTAINS(c.errorInformation, '{}', true) ".format(info)
+
+    return query

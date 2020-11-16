@@ -3,7 +3,8 @@ import requests
 import json
 import logging
 
-def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num=10):  # pylint: disable=unused-argument
+
+def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num=50):  # pylint: disable=unused-argument
     '''query next command from web api'''
 
     url = os.environ["Aladdin_Service_URL"]
@@ -38,9 +39,9 @@ def get_cmd_history(command_list):
     command_data = json.loads(command_list)
     if len(command_data) == 0:
         return "start_of_snippet\nstart_of_snippet"
-    if len(command_data) == 1:
-        return "start_of_snippet\n" + get_cmd_data(command_data[0])
-    return get_cmd_data(command_data[0]) + '\n' + get_cmd_data(command_data[1])
+    if len(command_data) == 1 or os.environ["Aladdin_History_Command"] == "1":
+        return "start_of_snippet\n" + get_cmd_data(command_data[-1])
+    return get_cmd_data(command_data[-2]) + '\n' + get_cmd_data(command_data[-1])
 
 
 def get_cmd_data(command_item):
