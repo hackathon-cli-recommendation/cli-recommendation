@@ -1,7 +1,7 @@
 import os
 
 from azure.cosmos import CosmosClient, PartitionKey
-from .util import get_latest_cmd, generated_query_kql
+from .util import get_latest_cmd, generated_query_kql, RecommendationSource
 
 
 def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=50):
@@ -22,6 +22,7 @@ def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=
             for command_info in item['nextCommand']:
                 command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
                 if command_info['ratio'] * 100 >= int(os.environ["Recommendation_Threshold"]):
+                    command_info['source'] = RecommendationSource.OfflineCaculation
                     result.append(command_info)
 
     # Sort the calculated offline data according to the usage ratio and take the top n data

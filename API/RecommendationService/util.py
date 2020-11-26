@@ -14,6 +14,10 @@ class CosmosType(int, Enum):
     Solution = 2
     Scenario = 3
 
+class RecommendationSource(int, Enum):
+    KnowledgeBase = 1
+    OfflineCaculation = 2
+    Aladdin = 3
 
 def get_cosmos_type(recommend_type):
     if not recommend_type:
