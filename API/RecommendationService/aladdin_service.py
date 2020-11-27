@@ -2,7 +2,7 @@ import os
 import requests
 import json
 import logging
-from .util import RecommendationSource
+from .util import RecommendationSource, RecommendType
 
 
 def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num=50):  # pylint: disable=unused-argument
@@ -73,7 +73,8 @@ def transform_response(response):
         command_info = {
             "command": " ".join(sub_commands),
             "arguments": arguments,
-            "source": RecommendationSource.Aladdin
+            "source": RecommendationSource.Aladdin,
+            "type": RecommendType.Command
         }
         result.append(command_info)
 

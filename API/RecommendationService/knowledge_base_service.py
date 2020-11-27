@@ -1,7 +1,7 @@
 import os
 
 from azure.cosmos import CosmosClient, PartitionKey
-from .util import get_latest_cmd, generated_query_kql, RecommendationSource
+from .util import get_latest_cmd, generated_query_kql, RecommendationSource, RecommendType
 
 
 def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, top_num=50):
@@ -22,7 +22,8 @@ def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, 
                 scenario = {
                     'scenario': item['scenario'],
                     'nextCommandSet': item['nextCommandSet'],
-                    'source': RecommendationSource.KnowledgeBase
+                    'source': RecommendationSource.KnowledgeBase,
+                    'type': RecommendType.Scenario
                 }
                 if 'reason' in item:
                     scenario['reason'] = item['reason']
@@ -31,6 +32,10 @@ def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, 
             if 'nextCommand' in item:
                 for command_info in item['nextCommand']:
                     command_info['source'] = RecommendationSource.KnowledgeBase
+                    if error_info:
+                        command_info['type'] = RecommendType.Solution
+                    else:
+                        command_info['type'] = RecommendType.Command
                     result.append(command_info)
 
             if len(result) >= top_num:
