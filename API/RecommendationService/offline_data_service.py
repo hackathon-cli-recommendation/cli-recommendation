@@ -22,6 +22,7 @@ def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=
             for command_info in item['nextCommand']:
                 command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
                 if command_info['ratio'] * 100 >= int(os.environ["Recommendation_Threshold"]):
+                    command_info['usage_condition'] = get_usage_condition(command_info['ratio'])
                     command_info['source'] = RecommendationSource.OfflineCaculation
                     if error_info:
                         command_info['type'] = RecommendType.Solution
@@ -34,3 +35,10 @@ def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=
         result = sorted(result, key=lambda x: x['ratio'], reverse=True)
 
     return result[0: top_num]
+
+
+def get_usage_condition(ratio):
+    if ratio >= 0.3:
+        return 'The commonly used command by other users in next step'
+    if ratio >= 0.5:
+        return 'The most used command by other users in next step'

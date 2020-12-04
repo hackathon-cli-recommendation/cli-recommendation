@@ -39,10 +39,10 @@ def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cl
 def get_cmd_history(command_list):
     command_data = json.loads(command_list)
     if len(command_data) == 0:
-        return "start_of_snippet\nstart_of_snippet"
+        return ["start_of_snippet", "start_of_snippet"]
     if len(command_data) == 1 or os.environ["Aladdin_History_Command"] == "1":
-        return "start_of_snippet\n" + get_cmd_data(command_data[-1])
-    return get_cmd_data(command_data[-2]) + '\n' + get_cmd_data(command_data[-1])
+        return ["start_of_snippet", get_cmd_data(command_data[-1])]
+    return [get_cmd_data(command_data[-2]), get_cmd_data(command_data[-1])] 
 
 
 def get_cmd_data(command_item):
@@ -57,25 +57,51 @@ def transform_response(response):
     response_data = json.loads(response.text)
     result = []
 
-    for recommendation_item in response_data:
-        items = recommendation_item.split()
+    for recommended_item in response_data: 
+        if not recommended_item['prediction']:
+            continue
+
+        cmd_items = recommended_item['prediction'].split()
 
         sub_commands = []
         arguments = []
         argument_start = False
-        for item in items:
+        argument_values = {}
+        values = []
+        for item in cmd_items:
             if item.startswith('-'):
                 argument_start = True
-                arguments.append(item)
+                # In the case of "positional arguments" and "no arguments", the value of item is '-' 
+                if item != '-':
+                    if values and arguments:
+                        argument_values[arguments[-1]] = values
+                        values = []
+                    arguments.append(item)
             elif not argument_start and not item.startswith('{'):
                 sub_commands.append(item)
+            else:
+                values.append(item)
+        if values and arguments:
+            argument_values[arguments[-1]] = values
+
+        example = ' '.join(sub_commands)
+        for argument in arguments:
+            example = example + ' ' + argument
+            if argument in argument_values and argument_values[argument]:
+                example = example + ' <' + ' '.join(argument_values[argument]) + '>'
 
         command_info = {
             "command": " ".join(sub_commands),
             "arguments": arguments,
             "source": RecommendationSource.Aladdin,
-            "type": RecommendType.Command
+            "type": RecommendType.Command,
+            "example": example
         }
+        if recommended_item["description"]:
+            command_info['reason'] = recommended_item["description"]
+        if recommended_item["score"]:
+            command_info['score'] = recommended_item["score"]
+
         result.append(command_info)
 
     return result
