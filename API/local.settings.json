@@ -8,7 +8,8 @@
     "CosmosDB_DataBase": "cli-recommendation",
     "Recommendation_Container": "recommendation-offline",
     "KnowledgeBase_Container": "knowledge-base",
-    "Recommendation_Threshold": "10",
+    "Recommendation_Ratio_Threshold": "10",
+    "Recommendation_TotalCount_Threshold": "50",
     "Aladdin_Service_URL": "https://app.aladdin.microsoft.com/api/v2.0/predictions",
     "Recommendation_Prefer": "1",
     "Aladdin_History_Command": "1"

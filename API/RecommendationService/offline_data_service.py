@@ -18,10 +18,12 @@ def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=
 
     result = []
     for item in query_items:
+        if item['totalCount'] < int(os.environ["Recommendation_TotalCount_Threshold"]):
+            continue
         if item and 'nextCommand' in item:
             for command_info in item['nextCommand']:
                 command_info['ratio'] = float((int(command_info['count'])/int(item['totalCount'])))
-                if command_info['ratio'] * 100 >= int(os.environ["Recommendation_Threshold"]):
+                if command_info['ratio'] * 100 >= int(os.environ["Recommendation_Ratio_Threshold"]):
                     command_info['usage_condition'] = get_usage_condition(command_info['ratio'])
                     command_info['source'] = RecommendationSource.OfflineCaculation
                     if error_info:
