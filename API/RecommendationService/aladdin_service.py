@@ -88,7 +88,11 @@ def transform_response(response):
         for argument in arguments:
             example = example + ' ' + argument
             if argument in argument_values and argument_values[argument]:
-                example = example + ' <' + ' '.join(argument_values[argument]) + '>'
+                arg_values = ' '.join(argument_values[argument])
+                if arg_values.startswith('<'):
+                    example = example + ' ' + arg_values
+                else:
+                    example = example + ' <' +  arg_values + '>'
 
         command_info = {
             "command": " ".join(sub_commands),
