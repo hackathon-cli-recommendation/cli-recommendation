@@ -49,6 +49,8 @@ def get_cmd_data(command_item):
     command_item = json.loads(command_item)
     command_data = command_item['command']
     if 'arguments' in command_item:
+        # parameters in the model is already sorted in alphabetical order, so the parameters we pass in should also keep this rule
+        command_item['arguments'] = sorted(command_item['arguments'])
         command_data = '{} {}'.format(command_data, ' *** '.join(command_item['arguments']) + ' ***')
     return command_data
 
@@ -77,7 +79,7 @@ def transform_response(response):
                         argument_values[arguments[-1]] = values
                         values = []
                     arguments.append(item)
-            elif not argument_start and not item.startswith('{'):
+            elif not argument_start and not item.startswith('<'):
                 sub_commands.append(item)
             else:
                 values.append(item)
