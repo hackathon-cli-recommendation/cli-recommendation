@@ -31,5 +31,5 @@ Supported Systems: `Windows`, `Linux`, `Mac` <br/>
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223923.png)
 
 ### Feedback
-Please do play with it and share any feedback or suggestions. <br/>
+Please do play with it, if you have any suggestions or feedback, please submit them here: [issue for az next](https://github.com/hackathon-cli-recommendation/cli-recommendation/issues). <br/>
 If you think there are some inaccuracies in the recommendation, please let us know what you expect to be recommended, we will try to solve these problems in the future.
