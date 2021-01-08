@@ -14,7 +14,7 @@ Please run this script: **sh install_by_pip.sh**
 
 **Others** *(If you installed CLI by other ways before, such as Homebrew, please choose this way)* <br/>
 Supported Systems: `Windows`, `Linux`, `Mac` <br/>
-- Create a virtual environments by `Python` [How to create venv](https://docs.python.org/3/tutorial/venv.html) <br/>
+- Create a virtual environments by `Python` [How to create venv](https://docs.python.org/3/tutorial/venv.html) *(Please remember to activate the virtual environment after creating the virtual environment)*<br/>
 - After entering the virtual environment, execute command **pip install azure-cli** to install `azure-cli` <br/>
 - Using script to install `az next`: **sh install_by_pip.sh** *(Script URL: [install_by_pip.sh](https://clirecommendation.blob.core.windows.net/package/install_by_pip.sh) )* <br/>
 
