@@ -9,6 +9,7 @@ from .offline_data_service import get_recommend_from_cosmos
 from .aladdin_service import get_recommend_from_aladdin
 
 from .util import need_aladdin_recommendation
+from .filter import filter_recommendation_result
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -58,7 +59,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
     knowledge_base_items = get_recommend_from_knowledge_base(command_list, recommend_type, error_info)
     if len(knowledge_base_items) >= top_num:
-        return func.HttpResponse(generate_response(data=knowledge_base_items[0: top_num], status=200))
+        result = filter_recommendation_result(knowledge_base_items, command_list)
+        return func.HttpResponse(generate_response(data=result[0: top_num], status=200))
 
     # Get the recommendation of offline caculation from cosmos
     calculation_items = get_recommend_from_cosmos(command_list, recommend_type, error_info)
@@ -68,11 +70,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if need_aladdin_recommendation(recommend_type, error_info):
         aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
 
-    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items, top_num)
+    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+    result = filter_recommendation_result(result, command_list)
+
     if not result:
         return func.HttpResponse('{}', status_code=200)
 
-    return func.HttpResponse(generate_response(data=result, status=200))
+    return func.HttpResponse(generate_response(data=result[0:top_num], status=200))
 
 
 def get_param_str(req, param_name):
@@ -109,7 +113,7 @@ def generate_response(data, status, error=None):
 
 
 # Merge and sort multiple data sources
-def merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items, top_num):
+def merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items):
 
     result = knowledge_base_items
 
@@ -143,30 +147,23 @@ def merge_and_sort_recommendation_items(knowledge_base_items, calculation_items,
                 commands_from_recommendation.append(calculation_items[command_index])
                 exist_commands.append(calculation_command)
 
-        if len(knowledge_base_items) + len(commands_from_recommendation) >= top_num:
-            result.extend(commands_from_recommendation)
-            return result[0: top_num]
-
         command_index = command_index + 1
 
-    remaining_size = top_num - len(knowledge_base_items)
-    commands_from_recommendation = merge_remaining_items(command_index, calculation_items, exist_commands, commands_from_recommendation, remaining_size)
-    commands_from_recommendation = merge_remaining_items(command_index, aladdin_items, exist_commands, commands_from_recommendation, remaining_size)
+    commands_from_recommendation = merge_remaining_items(command_index, calculation_items, exist_commands, commands_from_recommendation)
+    commands_from_recommendation = merge_remaining_items(command_index, aladdin_items, exist_commands, commands_from_recommendation)
 
     result.extend(commands_from_recommendation)
-    return result[0: top_num]
+    return result
 
 
-def merge_remaining_items(command_index, items, exist_commands, commands_from_recommendation, remaining_size):
+def merge_remaining_items(command_index, items, exist_commands, commands_from_recommendation):
+
     while command_index < len(items):
 
         command = items[command_index]['command']
         if command not in exist_commands:
             commands_from_recommendation.append(items[command_index])
             exist_commands.append(command)
-
-        if len(commands_from_recommendation) == remaining_size:
-            return commands_from_recommendation
 
         command_index = command_index + 1
 

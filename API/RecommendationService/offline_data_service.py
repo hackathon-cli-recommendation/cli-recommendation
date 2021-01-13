@@ -45,6 +45,6 @@ def get_recommend_from_cosmos(command_list, recommend_type, error_info, top_num=
 
 def get_usage_condition(ratio):
     if ratio >= 0.3:
-        return 'The commonly used command by other users in next step'
+        return 'Commonly used command by other users in next step'
     if ratio >= 0.5:
         return 'The most used command by other users in next step'
