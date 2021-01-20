@@ -5,7 +5,7 @@ import os
 from functools import reduce
 
 from .knowledge_base_service import get_recommend_from_knowledge_base
-from .offline_data_service import get_recommend_from_cosmos
+from .offline_data_service import get_recommend_from_offline_data
 from .aladdin_service import get_recommend_from_aladdin
 
 from .util import need_aladdin_recommendation
@@ -62,8 +62,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         result = filter_recommendation_result(knowledge_base_items, command_list)
         return func.HttpResponse(generate_response(data=result[0: top_num], status=200))
 
-    # Get the recommendation of offline caculation from cosmos
-    calculation_items = get_recommend_from_cosmos(command_list, recommend_type, error_info)
+    # Get the recommendation of offline caculation from offline data
+    calculation_items = get_recommend_from_offline_data(command_list, recommend_type, error_info)
 
     # Get the recommendation from Aladdin
     aladdin_items = []

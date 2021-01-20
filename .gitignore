@@ -127,7 +127,7 @@ bin
 obj
 .python_packages
 
-local.settings.json
-local_settings.py
+API/local.settings.json
+API/local_settings.py
 
 .vscode/

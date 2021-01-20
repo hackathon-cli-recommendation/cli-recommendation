@@ -69,13 +69,18 @@ def parse_error_info(error_info):
     return error_info.split(split_str)
 
 
-def get_latest_cmd(command_list):
-    command_data = json.loads(command_list)
+def get_latest_cmd(command_list, num=1):
+    command_list_data = json.loads(command_list)
     # If there is no command has been executed before, assume that the user's first command is "group create"
-    if len(command_data) == 0:
+    if len(command_list_data) == 0:
         return "group create"
-    latest_cmd = json.loads(command_data[-1])
-    return latest_cmd['command']
+
+    commands = []
+    for command_item in command_list_data:
+        cmd = json.loads(command_item)
+        commands.append(cmd['command'])
+
+    return commands[-num:]
 
 
 def generated_query_kql(command, recommend_type, error_info):
