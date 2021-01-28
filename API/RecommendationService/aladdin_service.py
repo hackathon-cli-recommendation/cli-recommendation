@@ -60,10 +60,10 @@ def transform_response(response):
     result = []
 
     for recommended_item in response_data: 
-        if not recommended_item['prediction']:
+        if 'command' not in recommended_item or not recommended_item['command']:
             continue
 
-        cmd_items = recommended_item['prediction'].split()
+        cmd_items = recommended_item['command'].split()
 
         sub_commands = []
         arguments = []
@@ -103,9 +103,9 @@ def transform_response(response):
             "type": RecommendType.Command,
             "example": example
         }
-        if recommended_item["description"]:
+        if "description" in recommended_item and recommended_item["description"]:
             command_info['reason'] = recommended_item["description"]
-        if recommended_item["score"]:
+        if "score" in recommended_item and recommended_item["score"]:
             command_info['score'] = recommended_item["score"]
 
         result.append(command_info)
