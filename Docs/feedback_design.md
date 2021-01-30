@@ -125,6 +125,9 @@ PowerBI/Dashboard
 ### Data scheme
 ```
 {
+   "PV": 10000,                                         // the number of times "az next" was executed
+   "UV": 1000,                                          // the number of users using "az next"
+   "retention_rate": 0.42                               // Usage retention rate
    "total_adoption_rate": 0.30,                         // total adoption rate (total_adoption_count/total_rec_count)
    "total_rec_count": 33000,                            // total recommendation count (option>=0)
    "total_adoption_count": 10000,                       // total adoption count (option>0),
@@ -194,13 +197,30 @@ PowerBI/Dashboard
        ]
    },
    "lowest_adoption_rate":{                        // lowest adoption items
-        "operation":[
+      "operation":[
            {
                 "content": "group create",         // recommendation content (content) 
                 "adoption_rate": 0.36,             // adoption rate
                 "type": 3                          // item type (adoption_type)
             }
        ],
+       "solution":[
+           {
+                "content": "group create",                                          
+                "adoption_rate": 0.36,                                          
+                "type": 2,   
+                "error_info"："the following arguments are required: --location/-l"  // matching error messages (error_info)
+           }
+       ]
+   },
+   "most_used_command":{
+      "operation":[
+               {
+                  "content": "group create",         // recommendation content (content) 
+                  "adoption_rate": 0.36,             // adoption rate
+                  "type": 3                          // item type (adoption_type)
+               }
+            ],
        "solution":[
            {
                 "content": "group create",                                          
