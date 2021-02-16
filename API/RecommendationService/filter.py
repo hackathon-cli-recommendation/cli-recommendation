@@ -13,8 +13,9 @@ def filter_recommendation_result(recommendation_result, command_list):
     filter_command = json.loads(command_data[-1])['command']
     filter_result = []
     for item in recommendation_result:
-        if item['type'] == RecommendType.Command and item['command'] == filter_command:
-            continue
+        if item['type'] == RecommendType.Command:
+            if item['command'] == filter_command or 'delete' in item['command']:
+                continue
         filter_result.append(item)
 
     return filter_result
