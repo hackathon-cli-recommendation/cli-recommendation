@@ -10,6 +10,7 @@ from .aladdin_service import get_recommend_from_aladdin
 
 from .util import need_aladdin_recommendation
 from .filter import filter_recommendation_result
+from .personalized_analysis import analyze_personal_path
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -71,6 +72,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
 
     result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+
+    if os.environ["Support_Personalization"] == '1':
+        result = analyze_personal_path(result, command_list)
+
     result = filter_recommendation_result(result, command_list)
 
     if not result:

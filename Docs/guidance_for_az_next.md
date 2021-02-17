@@ -2,21 +2,10 @@
 
 ### How to install
 
-**MSI** *(If you installed CLI by MSI before, please choose this way)* <br/>
-Supported Systems: `Windows` <br/>
-Script URL: [install_by_msi.ps1](https://clirecommendation.blob.core.windows.net/package/install_by_msi.ps1) <br/>
-Start `PowerShell` as **administrator** and run this script: **./install_by_msi.ps1** <br/>
+`az next` has been released as an extension, so you can install `az next` directly by executing `az extension add --source https://clirecommendation.blob.core.windows.net/package/next-0.1.0-py2.py3-none-any.whl --yes`.  *(If you have ever installed an older version of `az next`, please execute `az extension remove -n next` to uninstall the older version before installing the new version for `az next`)*
 
-**Pip** *(If you installed CLI by pip before, please choose this way)* <br/>
-Supported Systems: `Windows`, `Linux`, `Mac` <br/>
-Script URL: [install_by_pip.sh](https://clirecommendation.blob.core.windows.net/package/install_by_pip.sh) <br/>
-Please run this script: **sh install_by_pip.sh**
-
-**Others** *(If you installed CLI by other ways before, such as Homebrew, please choose this way)* <br/>
-Supported Systems: `Windows`, `Linux`, `Mac` <br/>
-- Create a virtual environments by `Python` [How to create venv](https://docs.python.org/3/tutorial/venv.html) *(Please remember to activate the virtual environment after creating the virtual environment)*<br/>
-- After entering the virtual environment, execute command **pip install azure-cli** to install `azure-cli` <br/>
-- Using script to install `az next`: **sh install_by_pip.sh** *(Script URL: [install_by_pip.sh](https://clirecommendation.blob.core.windows.net/package/install_by_pip.sh) )* <br/>
+However, you need to make sure that the version of `azure-cli-core` is 2.19.0+ (which can be viewed with `az version`). 
+If you are using an older version, please use `az upgrade` to upgrade.
 
 ### How to play
 
