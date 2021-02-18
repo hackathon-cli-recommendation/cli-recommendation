@@ -67,7 +67,7 @@ def parse_error_info(error_info):
 
     error_info = error_info.split('.')[0]
     split_str = "|*Split*|"
-    error_info = re.sub("\|(.*?)\|", split_str, error_info)
+    error_info = re.sub(" \_([^ ]*?)\_ ", split_str, error_info)
     return error_info.split(split_str)
 
 
