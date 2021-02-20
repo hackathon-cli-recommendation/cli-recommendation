@@ -9,7 +9,8 @@ If you are using an older version, please use `az upgrade` to upgrade.
 
 ### How to play
 
-1. When you make an error in executing command, it will recommend the solution most used by others who has the same error
+1. When you make an error in executing command, it will recommend the solution most used by others who has the same error. <br/>
+*Pelase note: This kind of recommendation need to turn on telemetry. If you haven not turned it on yet, please run `az config set core.collect_telemetry=True` and try again. If telemetry is not turned on, only this kind of recommendation will be affected, others can be used normally.*
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223136.png)
 
 2. When you don't know what to do next, it will recommend the next command to be executed most by others who has the same execution path
