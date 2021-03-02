@@ -1,4 +1,4 @@
-## Instructions for installing and trying 'az next'
+## Instructions for installing and trying `az next`
 
 ### How to install
 
@@ -9,14 +9,14 @@
 
 ### How to play
 
-1. When you encounter an error, 'az next' will recommend resolutions, based on what other users used most frequently to resolve the same error. <br/>
-
+1. When you encounter an error, `az next` will recommend resolutions, based on what other users used most frequently to resolve the same error. <br/>
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223136.png)
+*Pelase note: This kind of recommendation need to turn on telemetry, otherwise it will not work properly. (The following two recommendations are not affected)*
 
-2. When you don't know what to do next, 'az next' will recommend the next command to run, based on what other users with the same path used most frequently.
+2. When you don't know what to do next, `az next` will recommend the next command to run, based on what other users with the same path used most frequently.
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223705.png)
 
-3. When you have a common E2E scenario, 'az next' will recommend the next set of command combinations, based on command combinations used most frequently by other users.
+3. When you may be in a common E2E scenario, `az next` will recommend the next set of command combinations, based on command combinations from the knowledge base constructed by data mining.
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223800.png)
 ![avatar](https://github.com/zhoxing-ms/image/blob/master/Screenshot%202021-01-06%20223923.png)
 
