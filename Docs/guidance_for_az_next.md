@@ -3,9 +3,8 @@
 ### How to install
 
 1. You need `azure-cli-core` version 2.19.0+. Run`az version`to check your version. Use `az upgrade` to upgrade.
-2. Install `az next` directly by executing `az extension add --source https://clirecommendation.blob.core.windows.net/package/next-0.1.0-py2.py3-none-any.whl --yes`.  
-  *If you have an older version of `az next`, run `az extension remove -n next` to uninstall the older version before installing the new version of `az next`*
-3. Run `az config set core.collect_telemetry=True` to turn on telemetry. This will help us improve az next recommendations based on your usage data
+2. Install `az next` directly by executing `az extension add --name next`.
+3. Run `az config set core.collect_telemetry=True` to turn on telemetry. This will help us improve az next recommendations based on your usage data.
 
 ### How to play
 
