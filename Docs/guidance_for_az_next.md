@@ -2,7 +2,7 @@
 
 ### How to install
 
-1. You need `azure-cli-core` version 2.19.0+. Run`az version`to check your version. Use `az upgrade` to upgrade.
+1. You need `azure-cli-core` version 2.20.0+. Run`az version`to check your version. Use `az upgrade` to upgrade.
 2. Install `az next` directly by executing `az extension add --name next`.
 3. Run `az config set core.collect_telemetry=True` to turn on telemetry. This will help us improve az next recommendations based on your usage data.
 
