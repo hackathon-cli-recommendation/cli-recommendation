@@ -34,6 +34,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         error_info = get_param_str(req, 'error_info')
+        if error_info == 'show help':
+            error_info = ''
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "error_info" must be the type of string', status_code=400)
 
