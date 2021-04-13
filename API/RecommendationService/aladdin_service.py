@@ -22,7 +22,8 @@ def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cl
         "context": {
             "versionNumber": cli_version    
         },
-        "numberOfPredictions": top_num
+        "numberOfPredictions": top_num,
+        "useDefault": false
     }
     if correlation_id:
         payload["context"]["CorrelationId"] = correlation_id
