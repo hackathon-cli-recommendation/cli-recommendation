@@ -5,7 +5,7 @@
 This document defines the storage schema that stores the recommendation data.
 
 ### Database (CosmosDB)
-We use CosmosDB to store recommendation data.
+We use CosmosDB to store recommendation and scenario data.
 
 - recommendation-without-arguments: store recommendation data assuming only using command as recommendation input.
 
@@ -19,6 +19,12 @@ We use CosmosDB to store recommendation data.
   |   |   |   |   |   |
   |---|---|---|---|---|
   | id (command + arguments) | command (partition key) | arguments | totalCount | nextCommands |
+
+- e2e-scenario: store e2e scenarios that users can search for.
+
+  |   |   |   |   |   | | |
+  |---|---|---|---|---| --- |---|
+  | id (command + scenario) | firstCommand (partition key) | description | commandSet | source | source_url | update_time |
 
 #### Entity in recommendation-without-arguments container
        
