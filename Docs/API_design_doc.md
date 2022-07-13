@@ -93,7 +93,7 @@
 
 * <span id = "scenario-search">Search scenario data</span>
 
-    * Request URL：https://cli-recommendation.azurewebsites.net/api/ScenarioSearchService
+    * Request URL：https://cli-recommendation.azurewebsites.net/api/SearchService
 
     * Request Method：`POST` or `GET`
 
