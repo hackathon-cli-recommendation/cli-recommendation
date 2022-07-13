@@ -26,10 +26,9 @@ def get_param(req: func.HttpRequest, name: str, default=RequiredParameter):
     if not value:
         try:
             req_body = req.get_json()
+            value = req_body.get(name, default)
         except ValueError:
             pass
-        else:
-            value = req_body.get(name, default)
     if value == RequiredParameter:
         raise ParameterException(f'Illegal parameter: please pass in the parameter "{name}"')
     return value
