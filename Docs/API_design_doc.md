@@ -93,7 +93,7 @@
 
 * <span id = "scenario-search">Search scenario data</span>
 
-    * Request URL：https://cli-recommendation.azurewebsites.net/api/ScenarioSearchService
+    * Request URL：https://cli-recommendation.azurewebsites.net/api/SearchService
 
     * Request Method：`POST` or `GET`
 
@@ -130,15 +130,15 @@
         | source_url         | string     | link to origin file                       |
         | update_time        | string     | when the scenario updated                 |
         | description        | string     | scenario description                      |
-        | @search.score      | float      | Search score                              |
-        | @search.highlights | json       | highlight related content with &lt;em&gt; |
+        | score      | float      | Search score                              |
+        | highlights | json       | highlight related content with &lt;em&gt; |
 
     * Example：
         
         1. Search Scenario Example:
         Request:
         ```http
-                POST http://localhost:7071/api/ScenarioSearchService HTTP/1.1
+                POST http://localhost:7071/api/SearchService HTTP/1.1
                 Content-Type: application/json
 
                 {
@@ -185,8 +185,8 @@
                     "source_url": "https://github.com/Azure-Samples/azure-cli-samples/blob/master/postgresql/scale-postgresql-server/scale-postgresql-server.sh",
                     "update_time": "2022-07-12T03:00:25.262Z",
                     "description": "Monitor and scale a single PostgreSQL server",
-                    "@search.score": 3.9647722,
-                    "@search.highlights": {
+                    "score": 3.9647722,
+                    "highlights": {
                         "scenario": [
                             "<em>scale</em> postgresql <em>server</em> - Azure CLI Samples"
                         ]
