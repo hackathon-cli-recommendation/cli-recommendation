@@ -24,7 +24,7 @@ We use CosmosDB to store recommendation and scenario data.
 
   |   |   |   |   |   | | |
   |---|---|---|---|---| --- |---|
-  | id (command + scenario) | firstCommand (partition key) | description | commandSet | source | source_url | update_time |
+  | id (scenario name) | firstCommand (partition key) | description | commandSet | source | source_url | update_time |
 
 #### Entity in recommendation-without-arguments container
        
@@ -129,8 +129,7 @@ We use CosmosDB to store recommendation and scenario data.
 
 ```json
 {
-    "id": "9a040b9932eeaccb82c70a6154224393", // Generate by first command + scenario
-    "scenario": "deploy",
+    "id": "Deploy some app",
     "firstCommand": "az appservice plan create",
     "description": "Create app in a Docker container",
     "commandSet": [

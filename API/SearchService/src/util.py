@@ -10,9 +10,9 @@ class SearchType(int, Enum):
 
     def get_search_fields(self):
         if self == self.All:
-            return ["scenario", "description", "commandSet/command"]
+            return ["id", "description", "commandSet/command"]
         elif self == self.Scenario:
-            return ["scenario", "description"]
+            return ["id", "description"]
         elif self == self.Command:
             return ["commandSet/command"]
 
