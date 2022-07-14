@@ -13,9 +13,9 @@ def main(req: func.HttpRequest,
     logging.info('Python HTTP trigger function processed a request.')
 
     try:
-        keyword = get_param_str(req, "keyword")
-        search_type = get_param_search_type(req, "type", SearchType.All)
-        top_num = get_param_int(req, "top_num", 5)
+        keyword = get_param_str(req, "keyword", required=True)
+        search_type = get_param_search_type(req, "type", required=False, default=SearchType.All)
+        top_num = get_param_int(req, "top_num", required=False, default=5)
     except ParameterException as e:
         return func.HttpResponse(e.msg, status_code=400)
     results = get_search_results(

@@ -143,7 +143,7 @@
 
                 {
                     "keyword": "scale+server",
-                    "top": 5,
+                    "top_num": 5,
                     "type": "Scenario"
                 }
         ```

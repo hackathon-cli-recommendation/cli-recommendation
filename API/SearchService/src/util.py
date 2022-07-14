@@ -17,39 +17,37 @@ class SearchType(int, Enum):
             return ["commandSet/command"]
 
 
-class RequiredParameter:
-    pass
-
-
-def get_param(req: func.HttpRequest, name: str, default=RequiredParameter):
+def get_param(req: func.HttpRequest, name: str, required=True, default=None):
     value = req.params.get(name)
     if not value:
         try:
             req_body = req.get_json()
-            value = req_body.get(name, default)
+            value = req_body.get(name)
         except ValueError:
             pass
-    if value == RequiredParameter:
+    if required and value is None:
         raise ParameterException(f'Illegal parameter: please pass in the parameter "{name}"')
+    elif value is None:
+        return default
     return value
 
 
-def get_param_str(req: func.HttpRequest, name: str, default=RequiredParameter):
-    value = get_param(req, name, default)
+def get_param_str(req: func.HttpRequest, name: str, required=False, default=""):
+    value = get_param(req, name, required, default)
     if not isinstance(value, str):
         raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of string')
     return value
         
 
-def get_param_int(req: func.HttpRequest, name: str, default=RequiredParameter):
+def get_param_int(req: func.HttpRequest, name: str, required=False, default=0):
     try:
-        return int(get_param(req, name, default))
+        return int(get_param(req, name, required, default))
     except ValueError:
         raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int')
 
 
-def get_param_search_type(req: func.HttpRequest, name: str, default=RequiredParameter):
-    value = get_param(req, name, default)
+def get_param_search_type(req: func.HttpRequest, name: str, required=False, default=SearchType.All):
+    value = get_param(req, name, required, default)
     if isinstance(value, SearchType):
         return value
     try:
