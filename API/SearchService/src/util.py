@@ -69,3 +69,7 @@ def get_param_search_type(req: func.HttpRequest, name: str, required=False, defa
         else:
             raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int or str')
     return value
+
+
+def build_search_statement(keyword: str) -> str:
+    return " AND ".join([word + "~" for word in keyword.split()])

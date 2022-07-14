@@ -5,7 +5,7 @@ import azure.functions as func
 from .src.exception import ParameterException
 from .src.search_service import get_search_results
 
-from .src.util import SearchType, get_param_int, get_param_search_type, get_param_str
+from .src.util import SearchType, build_search_statement, get_param_int, get_param_search_type, get_param_str
 
 
 def main(req: func.HttpRequest,
@@ -19,7 +19,7 @@ def main(req: func.HttpRequest,
     except ParameterException as e:
         return func.HttpResponse(e.msg, status_code=400)
     results = get_search_results(
-        keyword, top_num, search_type.get_search_fields())
+        build_search_statement(keyword), top_num, search_type.get_search_fields())
     return func.HttpResponse(json.dumps({
         'data': results,
         'error': None,
