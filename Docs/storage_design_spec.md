@@ -164,7 +164,7 @@ We use CosmosDB to store recommendation and scenario data.
 
   | Property | Type | Description |
   | ------ | ------ | ------ |
-  | scenario | string | The name of scenario. |
+  | id (scenario name) | string | The name of scenario. |
   | firstCommand | string | The prototype of first command executed in this scenario. |
   | description | string | The description of this scenario. |
   | commandSet | list | The sequence of commands executed in this scenario. |
