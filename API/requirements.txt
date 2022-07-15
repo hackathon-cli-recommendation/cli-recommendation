@@ -1,2 +1,3 @@
 azure-functions
 azure-cosmos
+azure-search-documents==11.2.2

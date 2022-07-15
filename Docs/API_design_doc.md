@@ -90,3 +90,123 @@
         ```
 
 ---
+
+* <span id = "scenario-search">Search scenario data</span>
+
+    * Request URL：https://cli-recommendation.azurewebsites.net/api/SearchService
+
+    * Request Method：`POST` or `GET`
+
+    * Request Format：`JSON`
+
+    * Response Format：`JSON`
+
+    * Note：Get scenario search result based on scenario of command keyword
+
+    * Request Parameters：
+
+        | Name    | Type          | Is Require | Default value | Description                                          | Supported |
+        | ------- | ------------- | ---------- | ------------- | ---------------------------------------------------- | --------- |
+        | keyword | string        | true       | -             | The search keyword user searches                     | Yes       |
+        | type    | int or string | false      | all           | Search type, value range: 1.all 2.scenario 3.command | Yes       |
+        | top_num | int           | false      | 5             | The maximum number of search results                 | Yes       |
+
+    * Response Data:
+
+        | Name   | Type        | Description                     |
+        | ------ | ----------- | ------------------------------- |
+        | status | int         | Status code                     |
+        | error  | JSON        | Error information               |
+        | data   | JSON (list) | [Search Result](#search_result) |
+
+        <span id = "search_result">Search Result</span>
+        | Name               | Type       | Description                               |
+        | ------------------ | ---------- | ----------------------------------------- |
+        | scenario           | string     | scnario name                              |
+        | source             | int        | Scenario source: 1. sample repo 2.document crawler  |
+        | commandSet         | json(list) | command sequence in scenario              |
+        | firstCommand       | string     | first command in scenario                 |
+        | source_url         | string     | link to origin file                       |
+        | update_time        | string     | when the scenario updated                 |
+        | description        | string     | scenario description                      |
+        | score              | float      | Search score                              |
+        | highlights         | json       | highlight related content with &lt;em&gt; |
+
+    * Example：
+        
+        1. Search Scenario Example:
+        Request:
+        ```http
+                POST http://localhost:7071/api/SearchService HTTP/1.1
+                Content-Type: application/json
+
+                {
+                    "keyword": "scale+server",
+                    "top_num": 5,
+                    "type": "Scenario"
+                }
+        ```
+
+        Response
+        ```json
+        {
+            "data": [
+                {
+                    "scenario": "Scale postgresql server",
+                    "source": 1,
+                    "commandSet": [
+                        {
+                            "command": "az account show",
+                            "arguments": [
+                                "--query",
+                                "-o"
+                            ],
+                            "reason": "Variable block(subscriptionId will be used in subsequent commands.)",
+                            "example": "az account show --query id -o tsv"
+                        },
+                        {
+                            "command": "az postgres server create",
+                            "arguments": [
+                                "--name",
+                                "--resource-group",
+                                "--location",
+                                "--admin-user",
+                                "--admin-password",
+                                "--sku-name"
+                            ],
+                            "reason": "Create a PostgreSQL server in the resource group\\nName of a server maps to DNS name and is thus required to be globally unique in Azure.",
+                            "example": "az postgres server create --name $server --resource-group $resourceGroup --location $location --admin-user $login --admin-password $password --sku-name $sku"
+                        },
+                        {
+                            "command": "az postgres server update",
+                            "arguments": [
+                                "--resource-group",
+                                "--name",
+                                "--sku-name"
+                            ],
+                            "reason": "Scale up the server by provisionining more vCores within the same tier",
+                            "example": "az postgres server update --resource-group $resourceGroup --name $server --sku-name $scaleUpSku"
+                        }
+                    ],
+                    "firstCommand": "az postgres server create",
+                    "source_url": "https://github.com/Azure-Samples/azure-cli-samples/blob/master/postgresql/scale-postgresql-server/scale-postgresql-server.sh",
+                    "update_time": "2022-07-14T04:04:01.815Z",
+                    "description": "Monitor and scale a single PostgreSQL server",
+                    "score": 7.8474355,
+                    "highlights": {
+                        "description": [
+                            "Monitor and <em>scale</em> a single PostgreSQL <em>server</em>"
+                        ],
+                        "scenario": [
+                            "<em>Scale</em> postgresql <em>server</em>"
+                        ]
+                    }
+                }
+            ],
+            "error": null,
+            "status": 200
+        }
+        ```
+
+---
+
