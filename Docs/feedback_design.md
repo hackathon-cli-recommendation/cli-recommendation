@@ -1,4 +1,4 @@
-## Collected feedback data
+## Collected `az next` feedback data
 
 ### Storage
 Collected by Telemetry
@@ -35,7 +35,7 @@ No recommendation:
 1#-1#storage share#_share_ is misspelled or not recognized by the system.# # # # # # 
 ```
 
-## Summarize the effect of recommendation items
+## Summarize the effect of `az next` recommendation items
 
 ### Storage
 Store through Cosmos, offline caculation. It will be used to optimize the recommendation capabilities.
@@ -231,4 +231,35 @@ PowerBI/Dashboard
        ]
    }
 }
+```
+
+## Collected `az search-scenario` feedback data
+
+### Storage
+Collected by Telemetry
+
+### Data scheme
+|   Field   |   Content   |   Value   |
+|  -------  |  ---------  |  -------  |
+| search_type | The search type that the user used | 1:all 2:scenairo 3:command |
+| option | Options adopted by users | -1:no results 0:not adopted >0:adopted |
+| keyword | The keywords that used to search | string |
+| rec_source | The source of scenario | space separated array (item value: 1:sample repository 2:crawler) |
+| adoption_source | The data source of adoption | 1:sample repository 2:crawler |
+| scenario_name | The scenario adopted by users | string |
+| description | The adopted scenario description | string |
+
+> Use `\sharp` to escape `#`
+
+### Sample
+
+```
+Adopt Searched Scenario
+2#1#scale server#1 1 1 1#1#Scale postgresql server#Monitor and scale a single PostgreSQL server
+
+Not Adopted
+2#0#scale server#1 1 1 1# # # 
+
+No Result
+2#-1#az webapp log tail# # # # 
 ```
