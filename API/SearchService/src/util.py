@@ -130,7 +130,7 @@ def _build_search_statement(keyword: str, join_word=" AND ") -> str:
         elif len(word) <= dist1_length:
             word = word + "~1"
         else:
-            word = word + "~"
+            word = word + "~2"
         search_statement.append(word)
     return join_word.join(search_statement)
 
