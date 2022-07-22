@@ -17,6 +17,8 @@ def main(req: func.HttpRequest,
         search_type = get_param_search_type(
             req, "type", default=SearchType.All)
         top_num = get_param_int(req, "top_num", default=5)
+        if top_num <=0 or top_num > 20:
+            raise ParameterException("Illegal parameter: the parameter 'top_num' must be in the range 1-20")
         match_type = get_param_match_type(req, "match_type", default=MatchType.All)
     except ParameterException as e:
         return func.HttpResponse(e.msg, status_code=400)
