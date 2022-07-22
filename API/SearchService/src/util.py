@@ -1,4 +1,5 @@
 from enum import Enum
+import os
 import azure.functions as func
 
 from .exception import ParameterException
@@ -72,4 +73,17 @@ def get_param_search_type(req: func.HttpRequest, name: str, required=False, defa
 
 
 def build_search_statement(keyword: str) -> str:
-    return " AND ".join([word + "~" for word in keyword.split()])
+    search_statement = []
+    exact_length = os.environ.get("EXACT_MATCH_LENGTH", 2)
+    dist1_length = os.environ.get("DISTANCE_1_MATCH_LENGTH", 4)
+    for word in keyword.split():
+        if not word:
+            continue
+        if len(word) <= exact_length:
+            word = word
+        elif len(word) <= dist1_length:
+            word = word + "~1"
+        else:
+            word = word + "~"
+        search_statement.append(word)
+    return " AND ".join(search_statement)
