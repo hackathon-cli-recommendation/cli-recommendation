@@ -120,8 +120,8 @@ def build_or_search_statement(keyword: str) -> str:
 
 def _build_search_statement(keyword: str, join_word=" AND ") -> str:
     search_statement = []
-    exact_length = os.environ.get("EXACT_MATCH_LENGTH", 2)
-    dist1_length = os.environ.get("DISTANCE_1_MATCH_LENGTH", 4)
+    exact_length = os.environ.get("EXACT_MATCH_LENGTH", 3)
+    dist1_length = os.environ.get("DISTANCE_1_MATCH_LENGTH", 5)
     for word in keyword.split():
         if not word:
             continue
