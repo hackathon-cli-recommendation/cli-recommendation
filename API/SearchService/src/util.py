@@ -4,7 +4,7 @@ import azure.functions as func
 
 from .exception import ParameterException
 
-class SearchType(int, Enum):
+class SearchScope(int, Enum):
     All = 1
     Scenario = 2
     Command = 3
@@ -18,7 +18,7 @@ class SearchType(int, Enum):
             return ["commandSet/command"]
 
 
-class MatchType(int, Enum):
+class MatchRule(int, Enum):
     All = 1
     And = 2
     Or = 3
@@ -53,24 +53,24 @@ def get_param_int(req: func.HttpRequest, name: str, required=False, default=0):
         raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int')
 
 
-def get_param_search_type(req: func.HttpRequest, name: str, required=False, default=SearchType.All):
+def get_param_search_scope(req: func.HttpRequest, name: str, required=False, default=SearchScope.All):
     value = get_param(req, name, required, default)
-    if isinstance(value, SearchType):
+    if isinstance(value, SearchScope):
         return value
     try:
         value = int(value)
         try:
-            value = SearchType(value)
+            value = SearchScope(value)
         except ValueError:
             raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command)')
     except ValueError:
         if isinstance(value, str):
             if value.lower() == "all":
-                value = SearchType.All
+                value = SearchScope.All
             elif value.lower() == "scenario":
-                value = SearchType.Scenario
+                value = SearchScope.Scenario
             elif value.lower() == "command":
-                value = SearchType.Command
+                value = SearchScope.Command
             else:
                 raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command)')
         else:
@@ -78,24 +78,24 @@ def get_param_search_type(req: func.HttpRequest, name: str, required=False, defa
     return value
 
 
-def get_param_match_type(req: func.HttpRequest, name: str, required=False, default=MatchType.All):
+def get_param_match_rule(req: func.HttpRequest, name: str, required=False, default=MatchRule.All):
     value = get_param(req, name, required, default)
-    if isinstance(value, MatchType):
+    if isinstance(value, MatchRule):
         return value
     try:
         value = int(value)
         try:
-            value = MatchType(value)
+            value = MatchRule(value)
         except ValueError:
             raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(And) or 3(Or)')
     except ValueError:
         if isinstance(value, str):
             if value.lower() == "all":
-                value = MatchType.All
+                value = MatchRule.All
             elif value.lower() == "and":
-                value = MatchType.And
+                value = MatchRule.And
             elif value.lower() == "or":
-                value = MatchType.Or
+                value = MatchRule.Or
             else:
                 raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(And) or 3(Or)')
         else:
@@ -103,8 +103,8 @@ def get_param_match_type(req: func.HttpRequest, name: str, required=False, defau
     return value
 
 
-def build_search_statement(keyword: str, match_type: MatchType) -> str:
-    if match_type == MatchType.Or:
+def build_search_statement(keyword: str, match_rule: MatchRule) -> str:
+    if match_rule == MatchRule.Or:
         return build_or_search_statement(keyword)
     else:
         return build_and_search_statement(keyword)

@@ -8,8 +8,8 @@ Content-Type: application/json
 {
     "keyword": "web app",
     "top_num": 10,
-    "type": "All",
-    "match_type": 2
+    "scope": "All",
+    "match_rule": 2
 }
 
 
@@ -21,7 +21,7 @@ Content-Type: application/json
 {
     "keyword": "scale server",
     "top_num": 5,
-    "type": "Scenario"
+    "scope": "Scenario"
 }
 
 
@@ -33,7 +33,7 @@ Content-Type: application/json
 {
     "keyword": "scle server",
     "top_num": 5,
-    "type": "Scenario"
+    "scope": "Scenario"
 }
 
 
@@ -45,7 +45,7 @@ Content-Type: application/json
 {
     "keyword": "cosmosdb create",
     "top_num": 10,
-    "type": 3
+    "scope": 3
 }
 
 
@@ -56,5 +56,5 @@ Content-Type: application/json
 
 {
     "top_num": 5,
-    "type": "Scenario"
+    "scope": "Scenario"
 }
