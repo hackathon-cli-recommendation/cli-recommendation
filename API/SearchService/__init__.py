@@ -25,7 +25,7 @@ def main(req: func.HttpRequest,
     if len(keyword.split()) > 1 and len(results) < top_num and match_type == MatchType.All:
         or_results = get_search_results(build_or_search_statement(keyword), top_num, search_type.get_search_fields())
         append_results(results, or_results)
-        results = results[:min(top_num, len(results))]
+        results = results[:top_num]
     return func.HttpResponse(json.dumps({
         'data': results,
         'error': None,
