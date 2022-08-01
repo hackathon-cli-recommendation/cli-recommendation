@@ -41,13 +41,13 @@ It's difficult for users to search e2e scenario samples through conceptual doc. 
 
     If you found nothing help, you can alse enter `0` to quit `az search-scenario`. 
 
-    ![Search Scale Server Detailed Result](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-server-detail.png)
+    ![Search Scale Server Detailed Result](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-detail.png)
 
     You can access the original documentation or script via the given link. 
 
 3. Then you can execute the scenario in an interactive mode if the configuration `search_scenario.execute_in_prompt` is set to `True`. This is helpful to newcomers. 
 
-    ![Search Scale Server Execution](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-server-exec.png)
+    ![Search Scale Server Execution](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-exec.png)
 
 ### How to give feedback
 
