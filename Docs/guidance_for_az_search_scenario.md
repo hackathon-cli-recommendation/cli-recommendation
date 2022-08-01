@@ -24,8 +24,7 @@ It's difficult for users to search e2e scenario samples through conceptual doc. 
     az search-scenario "web app service" --match-rule or
     ```
 
-    - The `type` parameter specifies the type to search. You can also use `command` to search for scenarios related to the entered command or use `all` to enable hybrid search. The default of `type` is `all`. 
-    - The `top` parameter specifies the number of results to display. The default of `top` is `5`. 
+    - The `match-rule` parameter specifies the matching rules for multi-keywords: "and" is to search scenarios that match all keywords, "or" is to search scenarios that match any keyword, "all" is to search scenarios that match all keywords first, if the number is not enough then search any keyword.
 
     The search will take a while to complete. After the search is complete, you can see a list of related scenarios. You can then select one to view details.
 
@@ -48,6 +47,25 @@ It's difficult for users to search e2e scenario samples through conceptual doc. 
 3. Then you can execute the scenario in an interactive mode if the configuration `search_scenario.execute_in_prompt` is set to `True`. This is helpful to newcomers. 
 
     ![Search Scale Server Execution](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-exec.png)
+
+4. (Optional) You can also try the following examples. 
+
+    1. Find some E2E examples for how to connect cosmos db to app service. 
+
+        ```pwsh
+        az search-scenario "app serviec cosmos"
+        ```
+
+        > `az search-scenario` supports fuzzy search. 
+    
+    2. Search for scenarios that contain `az cosmosdb create`
+
+        ```pwsh
+        az search-scenario "cosmosdb create" --scope command --match-rule and --top 10
+        ```
+
+       - The `type` parameter specifies the type to search. You can also use `command` to search for scenarios related to the entered command or use `all` to enable hybrid search. The default of `type` is `all`. 
+       - The `top` parameter specifies the number of results to display. The default of `top` is `5`. 
 
 ### How to give feedback
 
