@@ -64,7 +64,7 @@ It's difficult for users to search e2e scenario samples through conceptual doc. 
         az search-scenario "cosmosdb create" --scope command --match-rule and --top 10
         ```
 
-       - The `type` parameter specifies the type to search. You can also use `command` to search for scenarios related to the entered command or use `all` to enable hybrid search. The default of `type` is `all`. 
+       - The `scope` parameter specifies the scope to search. You can also use `scenario` to search for scenarios with keywords in the name or description or `all` to enable hybrid search. The default of `scope` is `all`. 
        - The `top` parameter specifies the number of results to display. The default of `top` is `5`. 
 
 ### How to give feedback
