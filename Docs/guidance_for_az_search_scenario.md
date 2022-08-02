@@ -4,7 +4,7 @@
 
 ### What to solve
 
-It's difficult for users to search e2e scenario samples through conceptual doc. They have to find the corresponding conceptual doc and then extract the required sample from the doc that contains too much disparate information. 
+`az search-scenario` can help you find and explore the E2E scenarios you need. At the same time, it helps you use these E2E scenarios more efficiently with a friendly interactive process.
 
 ### How to solve
 
@@ -12,9 +12,8 @@ It's difficult for users to search e2e scenario samples through conceptual doc. 
 
 ### How to install
 
-1. You need `azure-cli-core` version 2.37.0+. Run `az version` to check your version. Use `az upgrade` to upgrade.
+1. You need `azure-cli-core` version 2.20.0+. Run `az version` to check your version. Use `az upgrade` to upgrade.
 2. Install `az search-scenario <keyword>` directly by executing `az extension add --name search-scenario`.
-3. (Optinal) Run `az config set core.collect_telemetry=True` to turn on telemetry. This will help us improve e2e scenarios based on your usage data.
 
 ### How to play
 
