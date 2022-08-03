@@ -1,71 +1,61 @@
 ## Instructions for installing and trying `az search-scenario`
 
-`az search-scenario` helps users to easily search for e2e scenario samples. 
 
-### What to solve
+### What is it
 
-`az search-scenario` can help you find and explore the E2E scenarios you need. At the same time, it helps you use these E2E scenarios more efficiently with a friendly interactive process.
-
-### How to solve
-
-`az search-scenario` service maintains a data source of hundreds of collected e2e scenario samples. Users can search e2e scenarios directly through the CLI. `az search-scenario` supports two types of search. Users can search e2e scenarios through scenario description keywords or through related commands. `az search-scenario` also supports hybrid search. 
+`az search-scenario` is a search tool that can help you find and explore E2E scenario samples! </br>
+It supports fuzzy search and sort the searched results according to the matching degree from high to low. </br>
+It supports flexible search scenarios, you can specify the search scope and customize the matching rules. </br>
+Moreover, it helps you execute these E2E scenarios more efficiently with a friendly walk-through process.
 
 ### How to install
 
-1. You need `azure-cli-core` version 2.20.0+. Run `az version` to check your version. Use `az upgrade` to upgrade.
-2. Install `az search-scenario <keyword>` directly by executing `az extension add --name search-scenario`.
+- You need `azure-cli-core` version `2.20.0+`. Please run `az version` to check your version and use `az upgrade` to upgrade the version.
+- Run `az search-scenario <keyword>` directly or install it by executing `az extension add --name search-scenario`.
 
 ### How to play
 
-1. In this part, I will show you with a example on search scenario samples. Assume that you need some cases about `WEB APP`(or `APP SERVICE` in some cases). Execute following command in terminal. 
+1. Suppose you want to search the E2E scenario examples whose title or description related to app service or web app, please run:
 
     ```pwsh
     az search-scenario "web app service" --match-rule or
     ```
 
-    - The `match-rule` parameter specifies the matching rules for multi-keywords: "and" is to search scenarios that match all keywords, "or" is to search scenarios that match any keyword, "all" is to search scenarios that match all keywords first, if the number is not enough then search any keyword.
+    - The `--match-rule` parameter allows you specify the matching rules for multi-keywords
 
-    The search will take a while to complete. After the search is complete, you can see a list of related scenarios. You can then select one to view details.
+    After the search is completed, you will see a list of related scenarios. You can select one to view details.
 
     ![Search App Service](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service.png)
 
-2. Enter `3` to learn about "Create an App Service app with deployment from GitHub". 
+2. Suppose we choose option 3: `Create an App Service app with deployment from GitHub` 
 
-    ```pwsh
-    ? Please select your option (if none, enter 0): 3
-    ```
-
-    `az search-scenario` will display the commands contained in the scenario. 
-
-    If you found nothing help, you can alse enter `0` to quit `az search-scenario`. 
+    This tool will display the commands contained in the scenario. 
 
     ![Search Scale Server Detailed Result](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-detail.png)
 
-    You can access the original documentation or script via the given link. 
+    - You can visit the original documentation or CLI script to get more comprehensive context via the given link. 
 
-3. Then you can execute the scenario in an interactive mode if the configuration `search_scenario.execute_in_prompt` is set to `True`. This is helpful to newcomers. 
+3. Then you can execute the the command combinations for this scenario in an walk-through mode
 
     ![Search Scale Server Execution](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-exec.png)
 
-4. (Optional) You can also try the following examples. 
+- Other Examples
 
-    1. Find some E2E examples for how to connect cosmos db to app service. 
-
-        ```pwsh
-        az search-scenario "app serviec cosmos"
-        ```
-
-        > `az search-scenario` supports fuzzy search. 
-    
-    2. Search for scenarios that contain `az cosmosdb create`
+    - Search scenario examples of how to connect the App Service to SQL Database
 
         ```pwsh
-        az search-scenario "cosmosdb create" --scope command --match-rule and --top 10
+        az search-scenario "app service cosmos"
         ```
 
-       - The `scope` parameter specifies the scope to search. You can also use `scenario` to search for scenarios with keywords in the name or description or `all` to enable hybrid search. The default of `scope` is `all`. 
-       - The `top` parameter specifies the number of results to display. The default of `top` is `5`. 
+    - Search top 3 scenario examples whose commands contain keywords `cosmosdb` and `create` at the same time.
+
+        ```pwsh
+        az search-scenario "cosmosdb create" --scope command --match-rule and --top 3
+        ```
+
+       - The `scope` parameter allows you specify the search scope.
+       - The `top` parameter allows you specify the number of results.
 
 ### How to give feedback
 
-`az search-scenario` is under active development. Any suggestions or questions are welcome: [issue for az search-scenario](https://github.com/hackathon-cli-recommendation/cli-recommendation/issues). 
+`az search-scenario` is still under development, any suggestions or questions are welcome 😊: [issue for az search-scenario](https://github.com/hackathon-cli-recommendation/cli-recommendation/issues). 
