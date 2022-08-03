@@ -29,11 +29,11 @@ Moreover, it helps you execute these E2E scenarios more efficiently with a frien
 
 2. Suppose we choose option 3: `Create an App Service app with deployment from GitHub` 
 
-    This tool will display the commands contained in the scenario. 
+    This tool will display the commands contained in the scenario
 
     ![Search Scale Server Detailed Result](https://github.com/ReaNAiveD/image/blob/master/search-scenario-app-service-detail.png)
 
-    - You can visit the original documentation or CLI script to get more comprehensive context via the given link. 
+    - You can visit the original documentation or CLI script to get more comprehensive context via the given link
 
 3. Then you can execute the the command combinations for this scenario in an walk-through mode
 
@@ -47,15 +47,15 @@ Moreover, it helps you execute these E2E scenarios more efficiently with a frien
         az search-scenario "app service cosmos"
         ```
 
-    - Search top 3 scenario examples whose commands contain keywords `cosmosdb` and `create` at the same time.
+    - Search top 3 scenario examples whose commands contain keywords `cosmosdb` and `create` at the same time
 
         ```pwsh
         az search-scenario "cosmosdb create" --scope command --match-rule and --top 3
         ```
 
-       - The `scope` parameter allows you specify the search scope.
-       - The `top` parameter allows you specify the number of results.
+       - The `scope` parameter allows you specify the search scope
+       - The `top` parameter allows you specify the number of results
 
 ### How to give feedback
 
-`az search-scenario` is still under development, any suggestions or questions are welcome 😊: [issue for az search-scenario](https://github.com/hackathon-cli-recommendation/cli-recommendation/issues). 
+`az search-scenario` is still under development, any suggestions or questions are welcome 😊: [issue for az search-scenario](https://github.com/hackathon-cli-recommendation/cli-recommendation/issues)
