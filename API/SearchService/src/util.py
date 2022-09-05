@@ -11,9 +11,9 @@ class SearchScope(int, Enum):
 
     def get_search_fields(self):
         if self == self.All:
-            return ["id", "description", "commandSet/command"]
+            return ["name", "description", "commandSet/command"]
         elif self == self.Scenario:
-            return ["id", "description"]
+            return ["name", "description"]
         elif self == self.Command:
             return ["commandSet/command"]
 

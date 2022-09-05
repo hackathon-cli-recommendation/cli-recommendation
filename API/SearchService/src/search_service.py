@@ -23,7 +23,7 @@ def get_search_results(search_statement: str, top: int = 5, search_fields: Optio
         result.pop("rid")
         result["score"] = result.pop("@search.score")
         result["highlights"] = result.pop("@search.highlights")
-        result["scenario"] = result.pop("id")
-        if result["highlights"] and "id" in result["highlights"].keys():
-            result["highlights"]["scenario"] = result["highlights"].pop("id")
+        result["scenario"] = result.pop("name")
+        if result["highlights"] and "name" in result["highlights"].keys():
+            result["highlights"]["scenario"] = result["highlights"].pop("name")
     return results
