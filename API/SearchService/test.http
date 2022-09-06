@@ -19,7 +19,7 @@ GET http://localhost:{{port}}/api/SearchService HTTP/1.1
 Content-Type: application/json
 
 {
-    "keyword": "scale server",
+    "keyword": "migration feature",
     "top_num": 5,
     "scope": "Scenario"
 }
