@@ -23,7 +23,7 @@ def main(req: func.HttpRequest,
     except ParameterException as e:
         return func.HttpResponse(e.msg, status_code=400)
 
-    if bool(os.environ["ENABLE_CLAWLER_SCENARIOS"]):
+    if os.environ["ENABLE_CLAWLER_SCENARIOS"].lower() == "true":
         source_filter = [ScenarioSource.SAMPLE_REPO, ScenarioSource.DOC_CRAWLER]
     else:
         source_filter = [ScenarioSource.SAMPLE_REPO]
