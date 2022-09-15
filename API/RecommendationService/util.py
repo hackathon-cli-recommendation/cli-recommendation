@@ -2,6 +2,7 @@ import re
 import json
 
 from enum import Enum
+from typing import List
 
 class RecommendType(int, Enum):
     All = 1
@@ -18,6 +19,12 @@ class RecommendationSource(int, Enum):
     KnowledgeBase = 1
     OfflineCaculation = 2
     Aladdin = 3
+
+
+class ScenarioSourceType(int, Enum):
+    SAMPLE_REPO = 1
+    DOC_CRAWLER = 2
+
 
 def get_cosmos_type(recommend_type):
     if not recommend_type:
@@ -54,6 +61,14 @@ def need_error_info(recommend_type):
 
 def need_aladdin_recommendation(recommend_type, error_info):
     if recommend_type == RecommendType.Command:
+        return True
+    if recommend_type == RecommendType.All and not error_info:
+        return True
+    return False
+
+
+def need_scenario_recommendation(recommend_type, error_info):
+    if recommend_type == RecommendType.Scenario:
         return True
     if recommend_type == RecommendType.All and not error_info:
         return True

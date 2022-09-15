@@ -1,16 +1,16 @@
-import azure.functions as func
 import json
 import os
+import asyncio
 
-from functools import reduce
+import azure.functions as func
 
+from .aladdin_service import get_recommend_from_aladdin
+from .filter import filter_recommendation_result
 from .knowledge_base_service import get_recommend_from_knowledge_base
 from .offline_data_service import get_recommend_from_offline_data
-from .aladdin_service import get_recommend_from_aladdin
-
-from .util import need_aladdin_recommendation
-from .filter import filter_recommendation_result
 from .personalized_analysis import analyze_personal_path
+from .scenario_service import get_scenario_recommendation
+from .util import need_aladdin_recommendation, need_scenario_recommendation
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -19,7 +19,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         command_list = get_param_str(req, 'command_list')
         if not command_list:
             return func.HttpResponse('Illegal parameter: please pass in the parameter "command_list"', status_code=400)
-    except ValueError:
+    except ValueError as e:
+        print(e)
         return func.HttpResponse('Illegal parameter: the parameter "command_list" must be the type of string', status_code=400)
 
     try:
@@ -59,21 +60,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "user_id" must be the type of string', status_code=400)
 
-    # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
-    knowledge_base_items = get_recommend_from_knowledge_base(command_list, recommend_type, error_info)
-    if len(knowledge_base_items) >= top_num:
-        result = filter_recommendation_result(knowledge_base_items, command_list)
-        return func.HttpResponse(generate_response(data=result[0: top_num], status=200))
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    # Get the recommendation of offline caculation from offline data
-    calculation_items = get_recommend_from_offline_data(command_list, recommend_type, error_info)
-
-    # Get the recommendation from Aladdin
-    aladdin_items = []
-    if need_aladdin_recommendation(recommend_type, error_info):
-        aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
-
-    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+    result = loop.run_until_complete(get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id))
 
     if os.environ["Support_Personalization"] == '1':
         result = analyze_personal_path(result, command_list)
@@ -84,6 +74,39 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse('{}', status_code=200)
 
     return func.HttpResponse(generate_response(data=result[0:top_num], status=200))
+
+
+async def get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id):
+    loop = asyncio.get_event_loop()
+
+    # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
+    knowledge_base_items_future = loop.run_in_executor(None, get_recommend_from_knowledge_base, command_list, recommend_type, error_info)
+
+    def _get_scenario_recommendation(command_list, recommend_type, error_info):
+        scenario_items = []
+        if need_scenario_recommendation(recommend_type, error_info):
+            scenario_items = get_scenario_recommendation(command_list)
+        return scenario_items
+    scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, command_list, recommend_type, error_info)
+
+    # Get the recommendation of offline caculation from offline data
+    calculation_items_future = loop.run_in_executor(None, get_recommend_from_offline_data, command_list, recommend_type, error_info)
+
+    # Get the recommendation from Aladdin
+    def _get_aladdin_recommendation(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id):
+        aladdin_items = []
+        if need_aladdin_recommendation(recommend_type, error_info):
+            aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
+        return aladdin_items
+    aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id)
+
+    knowledge_base_items = await knowledge_base_items_future
+    scenario_items = await scenario_items_future
+    calculation_items = await calculation_items_future
+    aladdin_items = await aladdin_items_future
+
+    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+    return result
 
 
 def get_param_str(req, param_name):
