@@ -19,6 +19,7 @@ class RecommendationSource(int, Enum):
     KnowledgeBase = 1
     OfflineCaculation = 2
     Aladdin = 3
+    Search = 4
 
 
 class ScenarioSourceType(int, Enum):

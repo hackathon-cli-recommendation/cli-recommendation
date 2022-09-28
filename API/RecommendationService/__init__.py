@@ -9,7 +9,7 @@ from .filter import filter_recommendation_result
 from .knowledge_base_service import get_recommend_from_knowledge_base
 from .offline_data_service import get_recommend_from_offline_data
 from .personalized_analysis import analyze_personal_path
-from .scenario_service import get_scenario_recommendation
+from .scenario_service import get_scenario_recommendation_from_search
 from .util import need_aladdin_recommendation, need_scenario_recommendation
 
 
@@ -85,7 +85,8 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
     def _get_scenario_recommendation(command_list, recommend_type, error_info):
         scenario_items = []
         if need_scenario_recommendation(recommend_type, error_info):
-            scenario_items = get_scenario_recommendation(command_list)
+            # scenario_items = get_scenario_recommendation(command_list)
+            scenario_items = get_scenario_recommendation_from_search(command_list)
         return scenario_items
     scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, command_list, recommend_type, error_info)
 
