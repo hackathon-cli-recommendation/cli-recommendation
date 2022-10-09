@@ -2,7 +2,6 @@ import re
 import json
 
 from enum import Enum
-from typing import List
 
 class RecommendType(int, Enum):
     All = 1
