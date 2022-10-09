@@ -20,7 +20,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if not command_list:
             return func.HttpResponse('Illegal parameter: please pass in the parameter "command_list"', status_code=400)
     except ValueError as e:
-        print(e)
         return func.HttpResponse('Illegal parameter: the parameter "command_list" must be the type of string', status_code=400)
 
     try:

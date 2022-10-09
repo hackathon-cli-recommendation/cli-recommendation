@@ -36,7 +36,6 @@ def get_recommend_from_cosmos(database, commands, recommend_type, error_info, to
 
     query_items = list(recommendation_container.query_items(query=query, enable_cross_partition_query=True))
 
-    print(query_items)
     result = []
     for item in query_items:
         if item['totalCount'] < totalcount_threshold:
