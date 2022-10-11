@@ -71,14 +71,15 @@ def get_search_results(trigger_commands: List[str], top: int = 5):
     Returns:
         list[dict]: searched scenarios
     """
+    if len(trigger_commands) == 0:
+        return []
     service_endpoint = os.environ["SCENARIO_SEARCH_SERVICE_ENDPOINT"]
     search_client = SearchClient(endpoint=service_endpoint,
                                  index_name=os.environ["SCENARIO_SEARCH_INDEX"],
                                  credential=AzureKeyCredential(os.environ["SCENARIO_SEARCH_SERVICE_SEARCH_KEY"]))
 
-    search_statement = " OR ".join([f'"{cmd}"' for cmd in trigger_commands])
-    if search_statement:
-        search_statement = search_statement + "^2"
+    search_statement = "(" + " OR ".join([f'"{cmd}"' for cmd in trigger_commands][:-1]) + ") AND " + f'"{trigger_commands[-1]}"'
+    search_statement = f'"{trigger_commands[-1]}" OR ({search_statement})'
     results = search_client.search(
         search_text=search_statement,
         include_total_count=True,
