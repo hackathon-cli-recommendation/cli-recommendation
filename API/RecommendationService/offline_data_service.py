@@ -9,7 +9,7 @@ def get_recommend_from_offline_data(command_list, recommend_type, error_info, to
     commands = get_latest_cmd(command_list, 2)
 
     client = CosmosClient(os.environ["CosmosDB_Endpoint"], os.environ["CosmosDB_Key"])
-    database = client.create_database_if_not_exists(id=os.environ["CosmosDB_DataBase"])
+    database = client.get_database_client(os.environ["CosmosDB_DataBase"])
     totalcount_threshold = int(os.environ["Solution_TotalCount_Threshold"]) if cosmos_type == CosmosType.Solution else int(os.environ["Command_TotalCount_Threshold"])
     ratio_threshold = int(os.environ["Solution_Ratio_Threshold"]) if cosmos_type == CosmosType.Solution else int(os.environ["Command_Ratio_Threshold"])
 
@@ -26,10 +26,10 @@ def get_recommend_from_offline_data(command_list, recommend_type, error_info, to
 
 def get_recommend_from_cosmos(database, commands, recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num=50):
     if len(commands) == 2:
-        recommendation_container = database.create_container_if_not_exists(id=os.environ["Recommendation_Container_2"], partition_key=PartitionKey(path="/command"))
+        recommendation_container = database.get_container_client(os.environ["Recommendation_Container_2"])
         command_str = commands[-2] + "|" + commands[-1]
     else:
-        recommendation_container = database.create_container_if_not_exists(id=os.environ["Recommendation_Container"], partition_key=PartitionKey(path="/command"))
+        recommendation_container = database.get_container_client(os.environ["Recommendation_Container"])
         command_str = commands[-1]
 
     query = generated_query_kql(command_str, recommend_type, error_info)
