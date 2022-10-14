@@ -10,7 +10,7 @@ from .knowledge_base_service import get_recommend_from_knowledge_base
 from .offline_data_service import get_recommend_from_offline_data
 from .personalized_analysis import analyze_personal_path
 from .scenario_service import get_scenario_recommendation_from_search
-from .util import RecommendType, need_aladdin_recommendation
+from .util import need_aladdin_recommendation, need_offline_recommendation, need_scenario_recommendation
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -26,6 +26,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         top_num = get_param_int(req, 'top_num')
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "top_num" must be the type of int', status_code=400)
+
+    try:
+        command_top_num = get_param_int(req, 'command_top_num') or top_num or 5
+    except ValueError:
+        return func.HttpResponse('Illegal parameter: the parameter "command_top_num" must be the type of int', status_code=400)
+
+    try:
+        scenario_top_num = get_param_int(req, 'scenario_top_num') or top_num or 5
+    except ValueError:
+        return func.HttpResponse('Illegal parameter: the parameter "scenario_top_num" must be the type of int', status_code=400)
 
     try:
         recommend_type = get_param_int(req, 'type')
@@ -62,49 +72,55 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    result = loop.run_until_complete(get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id))
+    result = loop.run_until_complete(get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num, scenario_top_num))
 
     if os.environ["Support_Personalization"] == '1':
         result = analyze_personal_path(result, command_list)
 
-    result = filter_recommendation_result(result, command_list)
+    result = filter_recommendation_result(result, command_list, command_top_num, scenario_top_num)
 
     if not result:
         return func.HttpResponse('{}', status_code=200)
 
-    return func.HttpResponse(generate_response(data=result[0:top_num], status=200))
+    return func.HttpResponse(generate_response(data=result, status=200))
 
 
-async def get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id):
+async def get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num=5, scenario_top_num=5):
     loop = asyncio.get_event_loop()
 
-    # Get recommended commands from knowledge base or offline data, or get recommended scenarios from cognitive search
-    if recommend_type != RecommendType.Scenario:
-        # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
-        knowledge_base_items_future = loop.run_in_executor(None, get_recommend_from_knowledge_base, command_list, recommend_type, error_info)
+    # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
+    knowledge_base_items_future = loop.run_in_executor(None, get_recommend_from_knowledge_base, command_list, recommend_type, error_info)
 
-        # Get the recommendation of offline caculation from offline data
-        calculation_items_future = loop.run_in_executor(None, get_recommend_from_offline_data, command_list, recommend_type, error_info)
+    # Get the recommendation of offline caculation from offline data
+    async def _get_offline_recommendation(command_list, recommend_type, error_info, command_top_num):
+        offline_items = []
+        if need_offline_recommendation(recommend_type, error_info=None):
+            offline_items = await get_recommend_from_offline_data(command_list, recommend_type, error_info=None, top_num=command_top_num)
+        return offline_items
+    calculation_items_future = _get_offline_recommendation(command_list, recommend_type, error_info, command_top_num)
 
-        # Get the recommendation from Aladdin
-        def _get_aladdin_recommendation(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id):
-            aladdin_items = []
-            if need_aladdin_recommendation(recommend_type, error_info):
-                aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id)
-            return aladdin_items
-        aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id)
+    # Get the recommendation from Aladdin
+    def _get_aladdin_recommendation(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num):
+        aladdin_items = []
+        if need_aladdin_recommendation(recommend_type, error_info=None):
+            aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, command_top_num)
+        return aladdin_items
+    aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, command_list, recommend_type, None, correlation_id, subscription_id, cli_version, user_id, command_top_num)
 
-        knowledge_base_items = await knowledge_base_items_future
-        calculation_items = await calculation_items_future
-        aladdin_items = await aladdin_items_future
+    def _get_scenario_recommendation(command_list, recommend_type, scenario_top_num):
+        scenario_items = []
+        if need_scenario_recommendation(recommend_type, error_info=None):
+            scenario_items = get_scenario_recommendation_from_search(command_list, scenario_top_num)
+        return scenario_items
+    scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, command_list, recommend_type, scenario_top_num)
 
-        result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+    knowledge_base_items = await knowledge_base_items_future
+    calculation_items = await calculation_items_future
+    aladdin_items = await aladdin_items_future
+    scenario_items = await scenario_items_future
 
-    else:
-        scenario_items_future = loop.run_in_executor(None, get_scenario_recommendation_from_search, command_list)
-
-        scenario_items = await scenario_items_future
-        result = scenario_items
+    result = merge_and_sort_recommendation_items(knowledge_base_items, calculation_items, aladdin_items)
+    result.extend(scenario_items)
 
     return result
 

@@ -45,7 +45,7 @@ def generated_cosmos_type(recommend_type, has_error):
     cosmos_type = get_cosmos_type(recommend_type)
     if cosmos_type:
         return cosmos_type
-    
+
     if recommend_type == RecommendType.All:
         if has_error:
             return CosmosType.Solution
@@ -60,6 +60,14 @@ def need_error_info(recommend_type):
 
 
 def need_aladdin_recommendation(recommend_type, error_info):
+    if recommend_type == RecommendType.Command:
+        return True
+    if recommend_type == RecommendType.All and not error_info:
+        return True
+    return False
+
+
+def need_offline_recommendation(recommend_type, error_info):
     if recommend_type == RecommendType.Command:
         return True
     if recommend_type == RecommendType.All and not error_info:
