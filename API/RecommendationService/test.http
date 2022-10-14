@@ -7,7 +7,7 @@ Content-Type: application/json
 
 {
     "command_list": "[\"{\\\"command\\\": \\\"network traffic-manager profile create\\\"}\",\"{\\\"command\\\": \\\"appservice plan create\\\"}\",\"{\\\"command\\\": \\\"webapp create\\\"}\"]",
-    "top_num": 20,
+    "scenario_top_num": 10,
     "type": 1
 }
 
