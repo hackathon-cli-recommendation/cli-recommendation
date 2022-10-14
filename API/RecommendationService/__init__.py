@@ -114,8 +114,8 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
         return scenario_items
     scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, command_list, recommend_type, scenario_top_num)
 
-    knowledge_base_items = await knowledge_base_items_future
     calculation_items = await calculation_items_future
+    knowledge_base_items = await knowledge_base_items_future
     aladdin_items = await aladdin_items_future
     scenario_items = await scenario_items_future
 
