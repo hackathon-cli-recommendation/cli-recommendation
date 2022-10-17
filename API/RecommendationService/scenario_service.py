@@ -20,7 +20,7 @@ def strip_az_in_command_set(command_set):
     """
     result = []
     for command in command_set:
-        if len(command["command"]) > 3 and command["command"].startswith("az "):
+        if command["command"] and command["command"].startswith("az "):
             command["command"] = command["command"][3:]
             result.append(command)
     return result
