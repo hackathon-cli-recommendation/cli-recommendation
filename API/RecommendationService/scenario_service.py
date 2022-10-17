@@ -32,7 +32,7 @@ def get_scenario_recommendation(command_list, top_num=50):
     commands = get_latest_cmd(command_list)
 
     client = CosmosClient(os.environ["CosmosDB_Endpoint"], os.environ["CosmosDB_Key"])
-    database = client.create_database_if_not_exists(id=os.environ["CosmosDB_DataBase"])
+    database = client.get_database_client(id=os.environ["CosmosDB_DataBase"])
     e2e_scenario_container = database.create_container_if_not_exists(id=os.environ["E2EScenario_Container"], partition_key=PartitionKey(path="/firstCommand"))
 
     result = []
