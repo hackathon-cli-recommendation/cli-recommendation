@@ -107,8 +107,11 @@ def get_scenario_recommendation_from_search(command_list, top_num=5):
 
     results = []
     for item in searched:
-        cmds = [(idx, cmd['command'][3:]) for idx, cmd in enumerate(item['commandSet']) if len(cmd) > 3]
-        exec_idx = [cmd[0] for cmd in cmds if cmd[1] not in trigger_commands]
+        # get all commands in searched scenario with `az ` stripped
+        cmds = [cmd['command'][3:] for cmd in item['commandSet'] if len(cmd['command']) > 3]
+        # get indices of commands that the user has not executed yet
+        exec_idx = [idx for idx, cmd in enumerate(cmds) if cmd not in trigger_commands]
+        # avoid recommending scenarios where the user has executed their last command
         if len(cmds) - 1 not in exec_idx:
             continue
         scenario = {
