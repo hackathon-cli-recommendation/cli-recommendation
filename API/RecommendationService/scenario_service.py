@@ -55,10 +55,7 @@ def get_scenario_recommendation(command_list, top_num=50):
                 scenario['reason'] = item['description']
             result.append(scenario)
 
-    if len(result) >= top_num:
-        return result[0: top_num]
-
-    return result
+    return result[0: top_num]
 
 
 def get_search_results(trigger_commands: List[str], top: int = 5):
