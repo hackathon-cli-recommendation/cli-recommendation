@@ -26,7 +26,9 @@
         |arugments | JSON | false | None | The arugments used by customer | No |
         |extra_data | JSON | false | None | Additional request data. Such as the error information passed in when recommending the solution to a problem | No |
         |type | int | false | 1 | Recommendation type, value range: 1.all 2.solution 3.command 4.resource 5.senario | Yes |
-        |top_num | int | false | 5 | The maximum number of recommended items | Yes |
+        |top_num | int | false | 5 | If there is no `command_top_num` or `scenario_top_num`, the corresponding top_num will fall back to this value. | Yes |
+        |command_top_num | int | false | top_num or 5 | The maximum number of recommended commands | Yes |
+        |scenario_top_num | int | false | top_num or 5 | The maximum number of recommended scenarios | Yes |
 
     * Response Data:
 
