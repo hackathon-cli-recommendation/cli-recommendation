@@ -23,7 +23,7 @@ async def get_recommend_from_offline_data(command_list, recommend_type, error_in
         result_future = loop.run_in_executor(None, get_recommend_from_cosmos, database, commands[-1:], recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)
 
         result_2 = await result_2_future
-        if len(result_2) < top_num:
+        if len(result_2) >= top_num:
             return result_2
         else:
             return result_2 + await result_future
