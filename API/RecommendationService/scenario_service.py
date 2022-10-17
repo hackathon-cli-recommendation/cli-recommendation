@@ -112,7 +112,7 @@ def get_scenario_recommendation_from_search(command_list, top_num=5):
         # get indices of commands that the user has not executed yet, which need to be executed
         execute_index = [idx for idx, cmd in enumerate(cmds) if cmd not in trigger_commands]
         # avoid recommending scenarios where the user has executed their last command
-        if len(cmds) - 1 not in exec_idx:
+        if len(cmds) - 1 not in execute_index:
             continue
         scenario = {
             'scenario': item['name'],
