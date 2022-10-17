@@ -119,7 +119,7 @@ def get_scenario_recommendation_from_search(command_list, top_num=5):
             'nextCommandSet': strip_az_in_command_set(item['commandSet']),
             'source': RecommendationSource.Search,
             'type': RecommendType.Scenario,
-            'executeIndex': exec_idx,
+            'executeIndex': execute_index,
             'score': item['@search.score']
         }
         if 'description' in item:
