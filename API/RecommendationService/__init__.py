@@ -22,6 +22,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError as e:
         return func.HttpResponse('Illegal parameter: the parameter "command_list" must be the type of string', status_code=400)
 
+    # Parameter `top_num` is optional. If there is no `command_top_num` or `scenario_top_num`, the corresponding top_num will fall back to this value.
     try:
         top_num = get_param_int(req, 'top_num')
     except ValueError:
