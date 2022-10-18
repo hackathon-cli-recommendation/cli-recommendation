@@ -9,8 +9,8 @@ def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, 
     commands = get_latest_cmd(command_list)
 
     client = CosmosClient(os.environ["CosmosDB_Endpoint"], os.environ["CosmosDB_Key"])
-    database = client.create_database_if_not_exists(id=os.environ["CosmosDB_DataBase"])
-    knowledge_base_container = database.create_container_if_not_exists(id=os.environ["KnowledgeBase_Container"], partition_key=PartitionKey(path="/command"))
+    database = client.get_database_client(os.environ["CosmosDB_DataBase"])
+    knowledge_base_container = database.get_container_client(os.environ["KnowledgeBase_Container"])
 
     query = generated_query_kql(commands[-1], recommend_type, error_info)
 
