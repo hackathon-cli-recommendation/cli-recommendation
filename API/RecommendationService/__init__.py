@@ -25,16 +25,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     # Parameter `top_num` is optional. If there is no `command_top_num` or `scenario_top_num`, the corresponding top_num will fall back to this value.
     try:
         top_num = get_param_int(req, 'top_num')
+        top_num = top_num if top_num is not None else 5
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "top_num" must be the type of int', status_code=400)
 
     try:
-        command_top_num = get_param_int(req, 'command_top_num') or top_num or 5
+        command_top_num = get_param_int(req, 'command_top_num')
+        command_top_num = command_top_num if command_top_num is not None else top_num
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "command_top_num" must be the type of int', status_code=400)
 
     try:
-        scenario_top_num = get_param_int(req, 'scenario_top_num') or top_num or 5
+        scenario_top_num = get_param_int(req, 'scenario_top_num')
+        scenario_top_num = scenario_top_num if scenario_top_num is not None else top_num
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "scenario_top_num" must be the type of int', status_code=400)
 
