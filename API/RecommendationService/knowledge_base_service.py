@@ -18,17 +18,6 @@ def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, 
     knowledge_base_items = list(knowledge_base_container.query_items(query=query, enable_cross_partition_query=True))
     if knowledge_base_items:
         for item in knowledge_base_items:
-            if 'nextCommandSet' in item:
-                scenario = {
-                    'scenario': item['scenario'],
-                    'nextCommandSet': item['nextCommandSet'],
-                    'source': RecommendationSource.KnowledgeBase,
-                    'type': RecommendType.Scenario
-                }
-                if 'reason' in item:
-                    scenario['reason'] = item['reason']
-                result.append(scenario)
-
             if 'nextCommand' in item:
                 for command_info in item['nextCommand']:
                     command_info['source'] = RecommendationSource.KnowledgeBase
