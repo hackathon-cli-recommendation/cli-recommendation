@@ -1,21 +1,13 @@
-import os
-
-from azure.cosmos import CosmosClient, PartitionKey
-from .util import get_latest_cmd, generated_query_kql, RecommendationSource, RecommendType
+from .cosmos_helper import query_recommendation_from_knowledge_base
+from .util import get_latest_cmd, RecommendationSource, RecommendType
 
 
 def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, top_num=50):
 
     commands = get_latest_cmd(command_list)
 
-    client = CosmosClient(os.environ["CosmosDB_Endpoint"], os.environ["CosmosDB_Key"])
-    database = client.create_database_if_not_exists(id=os.environ["CosmosDB_DataBase"])
-    knowledge_base_container = database.create_container_if_not_exists(id=os.environ["KnowledgeBase_Container"], partition_key=PartitionKey(path="/command"))
-
-    query = generated_query_kql(commands[-1], recommend_type, error_info)
-
     result = []
-    knowledge_base_items = list(knowledge_base_container.query_items(query=query, enable_cross_partition_query=True))
+    knowledge_base_items = list(query_recommendation_from_knowledge_base(commands[-1], recommend_type, error_info))
     if knowledge_base_items:
         for item in knowledge_base_items:
             if 'nextCommandSet' in item:
