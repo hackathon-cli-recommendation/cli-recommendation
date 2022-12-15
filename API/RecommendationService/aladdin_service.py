@@ -38,16 +38,14 @@ def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cl
 
 
 def get_cmd_history(command_list):
-    command_data = json.loads(command_list)
-    if len(command_data) == 0:
+    if len(command_list) == 0:
         return ["start_of_snippet", "start_of_snippet"]
-    if len(command_data) == 1 or os.environ["Aladdin_History_Command"] == "1":
-        return ["start_of_snippet", get_cmd_data(command_data[-1])]
-    return [get_cmd_data(command_data[-2]), get_cmd_data(command_data[-1])] 
+    if len(command_list) == 1 or os.environ["Aladdin_History_Command"] == "1":
+        return ["start_of_snippet", get_cmd_data(command_list[-1])]
+    return [get_cmd_data(command_list[-2]), get_cmd_data(command_list[-1])] 
 
 
 def get_cmd_data(command_item):
-    command_item = json.loads(command_item)
     command_data = command_item['command']
     if 'arguments' in command_item:
         # parameters in the model is already sorted in alphabetical order, so the parameters we pass in should also keep this rule
