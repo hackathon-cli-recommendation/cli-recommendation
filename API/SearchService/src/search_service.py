@@ -15,8 +15,7 @@ def get_search_results(
                                  index_name=os.environ["SCENARIO_SEARCH_INDEX"],
                                  credential=AzureKeyCredential(os.environ["SCENARIO_SEARCH_SERVICE_SEARCH_KEY"]))
 
-    # filter = " or ".join([f"(source eq {src})" for src in source_filter])
-    filter = f"search.in('source', '{', '.join([str(int(src)) for src in source_filter])}')"
+    filter = " or ".join([f"(source eq {src})" for src in source_filter])
     results = search_client.search(
         search_text=search_statement,
         filter=filter,
