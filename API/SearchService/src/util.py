@@ -24,11 +24,6 @@ class MatchRule(int, Enum):
     Or = 3
 
 
-class ScenarioSource(int, Enum):
-    SAMPLE_REPO = 1
-    DOC_CRAWLER = 2
-
-
 def get_param(req: func.HttpRequest, name: str, required=True, default=None):
     value = req.params.get(name)
     if not value:

@@ -4,18 +4,19 @@ from typing import List, Optional
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
-from .util import ScenarioSource
+from common.util import ScenarioSourceType
 
 
 def get_search_results(
-        search_statement: str, source_filter: List[ScenarioSource],
+        search_statement: str, source_filter: List[ScenarioSourceType],
         top: int = 5, search_fields: Optional[List[str]] = None):
     service_endpoint = os.environ["SCENARIO_SEARCH_SERVICE_ENDPOINT"]
     search_client = SearchClient(endpoint=service_endpoint,
                                  index_name=os.environ["SCENARIO_SEARCH_INDEX"],
                                  credential=AzureKeyCredential(os.environ["SCENARIO_SEARCH_SERVICE_SEARCH_KEY"]))
 
-    filter = f"search.in(HotelName, '{'|'.join(source_filter)}', '|')"
+    # filter = " or ".join([f"(source eq {src})" for src in source_filter])
+    filter = f"search.in('source', '{', '.join([str(int(src)) for src in source_filter])}')"
     results = search_client.search(
         search_text=search_statement,
         filter=filter,

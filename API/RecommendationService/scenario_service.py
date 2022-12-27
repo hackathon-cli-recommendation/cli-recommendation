@@ -4,9 +4,10 @@ from typing import List
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
+from common.util import ScenarioSourceType
+
 from .cosmos_helper import query_recommendation_from_e2e_scenario
-from .util import (RecommendationSource, RecommendType, ScenarioSourceType,
-                   get_latest_cmd)
+from .util import (RecommendationSource, RecommendType, get_latest_cmd)
 
 
 def strip_az_in_command_set(command_set):
