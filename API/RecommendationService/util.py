@@ -21,12 +21,6 @@ class RecommendationSource(int, Enum):
     Search = 4
 
 
-class ScenarioSourceType(int, Enum):
-    SAMPLE_REPO = 1
-    DOC_CRAWLER = 2
-    MANUAL_INPUT = 3
-
-
 def get_cosmos_type(recommend_type):
     if not recommend_type:
         return
