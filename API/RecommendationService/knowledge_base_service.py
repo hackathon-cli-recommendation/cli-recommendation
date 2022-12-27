@@ -10,17 +10,6 @@ def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, 
     knowledge_base_items = list(query_recommendation_from_knowledge_base(commands[-1], recommend_type, error_info))
     if knowledge_base_items:
         for item in knowledge_base_items:
-            if 'nextCommandSet' in item:
-                scenario = {
-                    'scenario': item['scenario'],
-                    'nextCommandSet': item['nextCommandSet'],
-                    'source': RecommendationSource.KnowledgeBase,
-                    'type': RecommendType.Scenario
-                }
-                if 'reason' in item:
-                    scenario['reason'] = item['reason']
-                result.append(scenario)
-
             if 'nextCommand' in item:
                 for command_info in item['nextCommand']:
                     command_info['source'] = RecommendationSource.KnowledgeBase
