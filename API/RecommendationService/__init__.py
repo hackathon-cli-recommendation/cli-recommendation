@@ -83,7 +83,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if os.environ["Support_Personalization"] == '1':
         result = analyze_personal_path(result, command_list)
 
-    result = filter_recommendation_result(result, command_list, command_top_num, scenario_top_num)
+    result = filter_recommendation_result(result, get_success_commands(command_list), command_top_num, scenario_top_num)
 
     if not result:
         return func.HttpResponse('{}', status_code=200)
