@@ -8,7 +8,7 @@ Content-Type: application/json
 {
     "command_list": "[\"{\\\"command\\\": \\\"network traffic-manager profile create\\\"}\",\"{\\\"command\\\": \\\"appservice plan create\\\"}\",\"{\\\"command\\\": \\\"webapp create\\\", \\\"exit_code\\\": 2}\"]",
     "scenario_top_num": 10,
-    "error_info": "Some info",
+    "error_info": "Linux Runtime _DOTNET _5",
     "type": 1
 }
 
