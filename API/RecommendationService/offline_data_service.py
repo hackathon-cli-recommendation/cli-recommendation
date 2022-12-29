@@ -24,7 +24,7 @@ async def get_recommend_from_offline_data(command_list, recommend_type, top_num=
 
 
 def get_recommend_from_solution(command_list, recommend_type, error_info, top_num=50):
-    commands = get_latest_cmd(command_list, 2)
+    commands = get_latest_cmd(command_list, 1)
     totalcount_threshold = int(os.environ["Solution_TotalCount_Threshold"])
     ratio_threshold = int(os.environ["Solution_Ratio_Threshold"])
     return get_recommend_from_cosmos(commands[-1:], recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)

@@ -96,6 +96,7 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
 
     # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
     knowledge_base_items_future = loop.run_in_executor(None, get_recommend_from_knowledge_base, command_list, recommend_type, error_info)
+    success_command_list = get_success_commands(command_list)
 
     # Get the recommendation of offline caculation from offline data
     async def _get_offline_recommendation(command_list, recommend_type, command_top_num):
@@ -103,7 +104,7 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
         if need_offline_recommendation(recommend_type):
             offline_items = await get_recommend_from_offline_data(command_list, recommend_type, top_num=command_top_num)
         return offline_items
-    calculation_items_future = _get_offline_recommendation(get_success_commands(command_list), recommend_type, command_top_num)
+    calculation_items_future = _get_offline_recommendation(success_command_list, recommend_type, command_top_num)
 
     # Get the recommendation from Aladdin
     def _get_aladdin_recommendation(command_list, recommend_type, correlation_id, subscription_id, cli_version, user_id, command_top_num):
@@ -111,14 +112,14 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
         if need_aladdin_recommendation(recommend_type):
             aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, command_top_num)
         return aladdin_items
-    aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, get_success_commands(command_list), recommend_type, correlation_id, subscription_id, cli_version, user_id, command_top_num)
+    aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, success_command_list, recommend_type, correlation_id, subscription_id, cli_version, user_id, command_top_num)
 
     def _get_scenario_recommendation(command_list, recommend_type, scenario_top_num):
         scenario_items = []
         if need_scenario_recommendation(recommend_type):
             scenario_items = get_scenario_recommendation_from_search(command_list, scenario_top_num)
         return scenario_items
-    scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, get_success_commands(command_list), recommend_type, scenario_top_num)
+    scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, success_command_list, recommend_type, scenario_top_num)
 
     def _get_solution_recommendation(command_list, recommend_type, error_info, solution_top_num):
         offline_items = []
