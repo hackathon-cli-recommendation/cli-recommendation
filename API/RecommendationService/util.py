@@ -1,7 +1,9 @@
+import os
 import re
 import json
 
 from enum import Enum
+
 
 class RecommendType(int, Enum):
     All = 1
@@ -9,10 +11,12 @@ class RecommendType(int, Enum):
     Command = 3
     Scenario = 4
 
+
 class CosmosType(int, Enum):
     Command = 1
     Solution = 2
     Scenario = 3
+
 
 class RecommendationSource(int, Enum):
     KnowledgeBase = 1
@@ -55,7 +59,9 @@ def need_error_info(recommend_type):
 
 
 def need_solution_recommendation(recommend_type, error_info):
-    if recommend_type in [RecommendType.All, RecommendType.Solution] and error_info:
+    solution_enabled = os.environ.get("Enable_Solution", '1') == '1'
+    solution_needed = recommend_type in [RecommendType.All, RecommendType.Solution] and error_info
+    if solution_enabled and solution_needed:
         return True
     return False
 
