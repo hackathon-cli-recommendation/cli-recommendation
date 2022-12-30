@@ -6,11 +6,10 @@ from .util import RecommendType
 def filter_recommendation_result(recommendation_result, command_list, command_top_num=5, scenario_top_num=5):
     if not recommendation_result or not command_list:
         return recommendation_result
-    command_data = json.loads(command_list)
-    if len(command_data) == 0:
+    if len(command_list) == 0:
         return recommendation_result
 
-    filter_command = json.loads(command_data[-1])['command']
+    filter_command = command_list[-1]['command']
     scenario_count = 0
     command_count = 0
     filter_result = []

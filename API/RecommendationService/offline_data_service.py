@@ -5,26 +5,28 @@ from .cosmos_helper import query_recommendation_from_offline_data, query_recomme
 from .util import get_latest_cmd, RecommendationSource, RecommendType, generated_cosmos_type, CosmosType
 
 
-async def get_recommend_from_offline_data(command_list, recommend_type, error_info, top_num=50):
-    loop = asyncio.get_event_loop()
-    cosmos_type = generated_cosmos_type(recommend_type, error_info)
+async def get_recommend_from_offline_data(command_list, recommend_type, top_num=50):
     commands = get_latest_cmd(command_list, 2)
 
-    totalcount_threshold = int(os.environ["Solution_TotalCount_Threshold"]) if cosmos_type == CosmosType.Solution else int(os.environ["Command_TotalCount_Threshold"])
-    ratio_threshold = int(os.environ["Solution_Ratio_Threshold"]) if cosmos_type == CosmosType.Solution else int(os.environ["Command_Ratio_Threshold"])
+    totalcount_threshold = int(os.environ["Command_TotalCount_Threshold"])
+    ratio_threshold = int(os.environ["Command_Ratio_Threshold"])
 
-    if cosmos_type == CosmosType.Solution:
-        return get_recommend_from_cosmos(commands[-1:], recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)
+    # The recommended content matching the last two commands is preferred. If there is no data, it will fall back to the situation of matching the last command
+    result_2_task = asyncio.create_task(asyncio.to_thread(get_recommend_from_cosmos, commands[-2:], recommend_type, None, totalcount_threshold, ratio_threshold, top_num))
+    result_task = asyncio.create_task(asyncio.to_thread(get_recommend_from_cosmos, commands[-1:], recommend_type, None, totalcount_threshold, ratio_threshold, top_num))
+
+    result_2 = await result_2_task
+    if len(result_2) >= top_num:
+        return result_2
     else:
-        # The recommended content matching the last two commands is preferred. If there is no data, it will fall back to the situation of matching the last command
-        result_2_future = loop.run_in_executor(None, get_recommend_from_cosmos, commands[-2:], recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)
-        result_future = loop.run_in_executor(None, get_recommend_from_cosmos, commands[-1:], recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)
+        return result_2 + await result_task
 
-        result_2 = await result_2_future
-        if len(result_2) >= top_num:
-            return result_2
-        else:
-            return result_2 + await result_future
+
+def get_recommend_from_solution(command_list, recommend_type, error_info, top_num=50):
+    last_command = get_latest_cmd(command_list, 1)
+    totalcount_threshold = int(os.environ["Solution_TotalCount_Threshold"])
+    ratio_threshold = int(os.environ["Solution_Ratio_Threshold"])
+    return get_recommend_from_cosmos(last_command, recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num)
 
 
 def get_recommend_from_cosmos(commands, recommend_type, error_info, totalcount_threshold, ratio_threshold, top_num=50):
@@ -61,7 +63,6 @@ def get_recommend_from_cosmos(commands, recommend_type, error_info, totalcount_t
     # Sort the calculated offline data according to the usage ratio and take the top n data
     if result:
         result = sorted(result, key=lambda x: x['ratio'], reverse=True)
-
     return result[0: top_num]
 
 
