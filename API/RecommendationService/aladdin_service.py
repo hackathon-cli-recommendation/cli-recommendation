@@ -5,7 +5,7 @@ import logging
 from .util import RecommendationSource, RecommendType
 
 
-async def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num=50):  # pylint: disable=unused-argument
+def get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, top_num=50):  # pylint: disable=unused-argument
     '''query next command from web api'''
 
     url = os.environ["Aladdin_Service_URL"]
