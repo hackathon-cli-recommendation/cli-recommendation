@@ -89,10 +89,9 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
     knowledge_base_items_task = asyncio.create_task(get_recommend_from_knowledge_base(command_list, recommend_type, error_info))
 
     # Get the recommendation of offline caculation from offline data
+    calculation_items_task = None
     if need_offline_recommendation(recommend_type):
         calculation_items_task = asyncio.create_task(get_recommend_from_offline_data(success_command_list, recommend_type, top_num=command_top_num))
-    else:
-        calculation_items_task = None
 
     # Get the recommendation from Aladdin
     if need_aladdin_recommendation(recommend_type):
