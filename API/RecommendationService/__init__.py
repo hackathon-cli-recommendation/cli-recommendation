@@ -89,7 +89,7 @@ async def get_recommendation_items(command_list, recommend_type, error_info, cor
     knowledge_base_items_task = asyncio.create_task(asyncio.to_thread(get_recommend_from_knowledge_base, command_list, recommend_type, error_info))
 
     # Get the recommendation of offline caculation from offline data
-    # `get_recommend_from_offline_data` is an async function, so we shouldn't create a new thread for it to run in.
+    # Since the `get_recommend_from_offline_data` method is already an async function, so we don't need to create a new thread for it to run in.
     calculation_items_task = None
     if need_offline_recommendation(recommend_type):
         calculation_items_task = asyncio.create_task(get_recommend_from_offline_data(success_command_list, recommend_type, top_num=command_top_num))
