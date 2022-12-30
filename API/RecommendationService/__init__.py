@@ -73,10 +73,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return func.HttpResponse('Illegal parameter: the parameter "user_id" must be the type of string', status_code=400)
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    result = loop.run_until_complete(get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num, scenario_top_num))
+    result = asyncio.run(get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num, scenario_top_num))
 
     if not result:
         return func.HttpResponse('{}', status_code=200)
