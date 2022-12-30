@@ -85,48 +85,41 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
 
 async def get_recommendation_items(command_list, recommend_type, error_info, correlation_id, subscription_id, cli_version, user_id, command_top_num=5, scenario_top_num=5):
-    loop = asyncio.get_event_loop()
     command_list = load_command_list(command_list)
     success_command_list = get_success_commands(command_list)
 
     # Take the data of knowledge base first, when the quantity of knowledge base is not enough, then take the data from calculation and Aladdin
-    knowledge_base_items_future = loop.run_in_executor(None, get_recommend_from_knowledge_base, command_list, recommend_type, error_info)
+    knowledge_base_items_task = asyncio.create_task(get_recommend_from_knowledge_base(command_list, recommend_type, error_info))
 
     # Get the recommendation of offline caculation from offline data
-    async def _get_offline_recommendation(command_list, recommend_type, command_top_num):
-        offline_items = []
-        if need_offline_recommendation(recommend_type):
-            offline_items = await get_recommend_from_offline_data(command_list, recommend_type, top_num=command_top_num)
-        return offline_items
-    calculation_items_future = _get_offline_recommendation(success_command_list, recommend_type, command_top_num)
+    if need_offline_recommendation(recommend_type):
+        calculation_items_task = asyncio.create_task(get_recommend_from_offline_data(success_command_list, recommend_type, top_num=command_top_num))
+    else:
+        calculation_items_task = None
 
     # Get the recommendation from Aladdin
-    def _get_aladdin_recommendation(command_list, recommend_type, correlation_id, subscription_id, cli_version, user_id, command_top_num):
-        aladdin_items = []
-        if need_aladdin_recommendation(recommend_type):
-            aladdin_items = get_recommend_from_aladdin(command_list, correlation_id, subscription_id, cli_version, user_id, command_top_num)
-        return aladdin_items
-    aladdin_items_future = loop.run_in_executor(None, _get_aladdin_recommendation, success_command_list, recommend_type, correlation_id, subscription_id, cli_version, user_id, command_top_num)
+    if need_aladdin_recommendation(recommend_type):
+        aladdin_items_task = asyncio.create_task(get_recommend_from_aladdin(success_command_list, correlation_id, subscription_id, cli_version, user_id, command_top_num))
+    else:
+        aladdin_items_task = None
 
-    def _get_scenario_recommendation(command_list, recommend_type, scenario_top_num):
-        scenario_items = []
-        if need_scenario_recommendation(recommend_type):
-            scenario_items = get_scenario_recommendation_from_search(command_list, scenario_top_num)
-        return scenario_items
-    scenario_items_future = loop.run_in_executor(None, _get_scenario_recommendation, success_command_list, recommend_type, scenario_top_num)
+    # Get the recommendation from E2E Scenarios
+    if need_scenario_recommendation(recommend_type):
+        scenario_items_task = asyncio.create_task(get_scenario_recommendation_from_search(success_command_list, scenario_top_num))
+    else:
+        scenario_items_task = None
 
-    def _get_solution_recommendation(command_list, recommend_type, error_info, solution_top_num):
-        offline_items = []
-        if need_solution_recommendation(recommend_type, error_info):
-            offline_items = get_recommend_from_solution(command_list, recommend_type, error_info, top_num=solution_top_num)
-        return offline_items
-    solution_items_future = loop.run_in_executor(None, _get_solution_recommendation, command_list, recommend_type, error_info, command_top_num)
+    # Get Solution recommendation
+    if need_solution_recommendation(recommend_type, error_info):
+        solution_items_task = asyncio.create_task(get_recommend_from_solution(command_list, recommend_type, error_info, top_num=command_top_num))
+    else:
+        solution_items_task = None
 
-    solution_items = await solution_items_future
-    calculation_items = await calculation_items_future
-    knowledge_base_items = await knowledge_base_items_future
-    aladdin_items = await aladdin_items_future
-    scenario_items = await scenario_items_future
+    solution_items = await solution_items_task if solution_items_task else []
+    calculation_items = await calculation_items_task if calculation_items_task else []
+    knowledge_base_items = await knowledge_base_items_task if knowledge_base_items_task else []
+    aladdin_items = await aladdin_items_task if aladdin_items_task else []
+    scenario_items = await scenario_items_task if scenario_items_task else []
 
     result = merge_and_sort_recommendation_items(solution_items + knowledge_base_items, calculation_items, aladdin_items)
     result.extend(scenario_items)

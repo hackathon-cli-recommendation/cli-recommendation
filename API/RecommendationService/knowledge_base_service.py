@@ -2,7 +2,7 @@ from .cosmos_helper import query_recommendation_from_knowledge_base
 from .util import get_latest_cmd, RecommendationSource, RecommendType
 
 
-def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, top_num=50):
+async def get_recommend_from_knowledge_base(command_list, recommend_type, error_info, top_num=50):
 
     commands = get_latest_cmd(command_list)
 

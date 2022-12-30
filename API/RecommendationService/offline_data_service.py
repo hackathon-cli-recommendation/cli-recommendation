@@ -23,7 +23,7 @@ async def get_recommend_from_offline_data(command_list, recommend_type, top_num=
         return result_2 + await result_future
 
 
-def get_recommend_from_solution(command_list, recommend_type, error_info, top_num=50):
+async def get_recommend_from_solution(command_list, recommend_type, error_info, top_num=50):
     commands = get_latest_cmd(command_list, 1)
     totalcount_threshold = int(os.environ["Solution_TotalCount_Threshold"])
     ratio_threshold = int(os.environ["Solution_Ratio_Threshold"])

@@ -79,7 +79,7 @@ def get_search_results(trigger_commands: List[str], top: int = 5):
     return results
 
 
-def get_scenario_recommendation_from_search(command_list, top_num=5):
+async def get_scenario_recommendation_from_search(command_list, top_num=5):
     """Recommend Scenarios that current context could be in
 
     Args:
