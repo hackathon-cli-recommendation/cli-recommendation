@@ -11,6 +11,8 @@ from .offline_data_service import get_recommend_from_offline_data, get_recommend
 from .personalized_analysis import analyze_personal_path
 from .scenario_service import get_scenario_recommendation_from_search
 from .util import get_success_commands, load_command_list, need_aladdin_recommendation, need_offline_recommendation, need_scenario_recommendation, need_solution_recommendation
+
+
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
