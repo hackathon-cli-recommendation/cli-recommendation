@@ -11,8 +11,8 @@ from .offline_data_service import get_recommend_from_offline_data, get_recommend
 from .personalized_analysis import analyze_personal_path
 from .scenario_service import get_scenario_recommendation_from_search
 from .util import get_success_commands, load_command_list, need_aladdin_recommendation, need_offline_recommendation, need_scenario_recommendation, need_solution_recommendation
-
-
+import uuid
+import time
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
@@ -154,7 +154,10 @@ def generate_response(data, status, error=None):
     response_data = {
         'data': data,
         'error': error,
-        'status': status
+        'status': status,
+        # The dynamic version of the API, which is defined in the function app settings and can be changed without redeploying the whole function.
+        # The version is different from the version of the whole api function, which is defined in host.json.
+        'dynamic_api_version': os.environ["Dynamic_API_Version"]
     }
     return json.dumps(response_data)
 
