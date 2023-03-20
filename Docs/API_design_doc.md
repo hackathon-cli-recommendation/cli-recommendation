@@ -210,7 +210,7 @@
             ],
             "error": null,
             "status": 200,
-            "dynamic_api_version": "1.0.0"
+            "api_version": "1.0.0"
         }
         ```
 
