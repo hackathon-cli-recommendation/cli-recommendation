@@ -155,9 +155,8 @@ def generate_response(data, status, error=None):
         'data': data,
         'error': error,
         'status': status,
-        # The dynamic version of the API, which is defined in the function app settings and can be changed without redeploying the whole function.
-        # The version is different from the version of the whole api function, which is defined in host.json.
-        'dynamic_api_version': os.environ["Dynamic_API_Version"]
+        # The version of the API, which is defined in the function app settings and can be changed without redeploying the whole function.
+        'api_version': os.environ["API_Version"]
     }
     return json.dumps(response_data)
 

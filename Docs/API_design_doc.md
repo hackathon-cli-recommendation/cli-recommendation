@@ -32,11 +32,12 @@
 
     * Response Data:
 
-        | Name | Type | Description |
-        |----- |------|-------------|
-        | status | int | Status code |
-        | error | JSON | Error information |
-        | data | JSON (list) | [Recommended data](#recommended_data) |
+      | Name | Type | Description                                              |
+      |----- |----------------------------------------------------------|-------------|
+      | status | int | Status code                                              |
+      | error | JSON | Error information                                        |
+      | api_version | string | The API version parsed from environment variables |
+      | data | JSON (list) | [Recommended data](#recommended_data)                    |
 
         <span id = "recommended_data">Recommended data</span>
         | Name | Type | Description |
@@ -70,6 +71,7 @@
                 {
                     "status": 200,
                     "error": null,
+                    "api_version": "1.0.0",
                     "data": [
                         {
                             "command": "az role assignment create",
@@ -115,11 +117,12 @@
 
     * Response Data:
 
-        | Name   | Type        | Description                     |
-        | ------ | ----------- | ------------------------------- |
-        | status | int         | Status code                     |
-        | error  | JSON        | Error information               |
-        | data   | JSON (list) | [Search Result](#search_result) |
+        | Name         | Type         | Description                               |
+        |--------------|--------------| ----------------------------------------- |
+        | status       | int          | Status code                               |
+        | error        | JSON         | Error information                         |
+        | api_version  | string       | The API version parsed from environment variables |
+        | data         | JSON (list)  | [Search Result](#search_result)           |
 
         <span id = "search_result">Search Result</span>
         | Name               | Type       | Description                               |
@@ -206,7 +209,8 @@
                 }
             ],
             "error": null,
-            "status": 200
+            "status": 200,
+            "dynamic_api_version": "1.0.0"
         }
         ```
 
