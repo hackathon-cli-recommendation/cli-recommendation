@@ -3,7 +3,7 @@
 History
 -------
 
-.. :The first position of the version number represents a major update, the second position represents a new version release, and the third position represents a minor adjustment of the model without re-release.
+.. :The first position (MAJOR version) represents a major update, the second position (MINOR version) represents version for new feature, and the third position (PATCH version) represents a minor adjustment or bugfix.
 
 1.0.0 (2023-03-20)
 ~~~~~~~~~~~~~~~~~~
