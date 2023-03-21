@@ -8,4 +8,4 @@ History
 1.0.0 (2023-03-20)
 ~~~~~~~~~~~~~~~~~~
 
-* Command recommendation based on frequency of command combinations
+* Integrate with offline calculation model, Aladdin model, and E2E scenario knowledge base to provide three use cases of solution recommendation, command recommendation and scenario recommendation
