@@ -121,7 +121,7 @@
         |--------------|--------------| ----------------------------------------- |
         | status       | int          | Status code                               |
         | error        | JSON         | Error information                         |
-        | api_version  | string       | The API version parsed from environment variables |
+        | api_version  | string       | The API version (x.x.x) parsed from environment variables. the MAJOR version for major upgrades, the MINOR version for new feature, and the PATCH version for bugfix |
         | data         | JSON (list)  | [Search Result](#search_result)           |
 
         <span id = "search_result">Search Result</span>
