@@ -4,26 +4,126 @@
 Collected by Telemetry
 
 ### Data scheme
-|   Field   |   Content   |   Value   |
-|  -------  |  ---------  |  -------  |
-| request_type | The recommendation type that the user filters | 1:all 2:solution 3:command 4:scenario |
-|  option | Options adopted by users | -1:no recommendation 0:not adopted >0:adopted |
-| latest_command | The last command that triggers the recommendation | command name |
-| error_info | Error infos when using the recommendation of Solution | error info |
-| rec_source | The data source of recommendation items | space separated array (item value: 1:knowledge base 2:caculation 3:Aladdin) |
-| rec_type | The type of recommendation items | space separated array (item value: 2:solution 3:command 4:scenario) |
-| adoption_source | The data source of adoption | 1:knowledge base 2:caculation 3:Aladdin |
-| adoption_type | The type of adoption | 2:solution 3:command 4:scenario |
-| content | The contents adopted by users | command name/scenario name |
-| arguments | The arguments adopted by users | arguments name |
+
+#### Custom Identification
+| Field          | Content                                                        | Value                                                                              |
+|----------------|----------------------------------------------------------------|------------------------------------------------------------------------------------|
+| MachineId      | The id of the customer's machine, each device has a unique id. | 64-bit hex char (9eb810f6158f99693851fd6f203a2b7248c81563be91bd310ca03c0c10cf08c9) |
+
+
+#### Recommendation Properties
+
+Stored at Properties["context.default.azurecli.recommendation"]
+
+| Field                       | Content                                                | Value                                                                                                        |
+|-----------------------------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| request_type                | The recommendation type that the user filters          | 1:all 2:solution 3:command 4:scenario                                                                        |
+| option                      | Options adopted by users                               | str (item value: -1:no recommendation 0:not adopted a$:accepted the $st command b$:accepted the $st scenario |
+| trigger_commands            | The last 1-2 commands that triggers the recommendation | command name                                                                                                 |
+| error_info                  | Error infos when using the recommendation of Solution  | error info                                                                                                   |
+| recommendations_list        | The list of all recommendations                        | list                                                                                                         |                                                       
+| recommendations_source_list | The data source of recommendation items                | list (item value: 1:knowledge base 2:caculation 3:Aladdin)                                                   |
+| recommendations_type_list   | The type of recommendation items                       | list (item value: 2:solution 3:command 4:scenario)                                                           |
+| accepted_recommend_source   | The data source of adoption accepted recommendation    | 1:knowledge base 2:caculation 3:Aladdin                                                                      |
+| accepted_recommend_type     | The type of accepted recommendation                    | 2:solution 3:command 4:scenario                                                                              |
+| accepted_recommend          | The contents accepted by users                         | command name/scenario name                                                                                   |
+| is_personalized             | Whether the accepted recommend is a personalized one   | bool                                                                                                         |
 
 ### Sample
 ```
 Adopt E2E Scenario:
-1#4#webapp create# #2 1#3 4#1#4#Monitor an App Service app with web server logs
+{
+    "api_version": null,
+    "recommendation_properties": {
+        "request_type": 1,
+        "option": "b2",
+        "trigger_commands": [
+            "group create",
+            ""
+        ],
+        "error_info": "None",
+        "recommendations_list": [
+            {
+                "scenario": "Create a cluster with Data Lake Storage Gen2"
+            },
+            {
+                "scenario": "Route policy state change events to Event Grid"
+            },
+            {
+                "scenario": "Mount an Azure file share in Azure Container Instances"
+            },
+            {
+                "scenario": "Send events from private container registry to Event Grid"
+            },
+            {
+                "scenario": "Setup geodr and failover database failover group"
+            }
+        ],
+        "recommendations_source_list": [
+            "4"
+        ],
+        "recommendations_type_list": [
+            "4"
+        ],
+        "accepted_recommend_source": 4,
+        "accepted_recommend_type": 4,
+        "accepted_recommend": "Route policy state change events to Event Grid",
+        "is_personalized": "None"
+    }
+}
 
 Adopt Command:
-1#5#group show# #2 1 3#3#2#3#storage blob upload#--account-key --account-name --container-name --file --name
+{
+    "api_version": null,
+    "recommendation_properties": {
+        "request_type": 1,
+        "option": "a2",
+        "trigger_commands": [
+            "group create",
+            "group create"
+        ],
+        "error_info": "None",
+        "recommendations_list": [
+            {
+                "command": "group show"
+            },
+            {
+                "command": "group list"
+            },
+            {
+                "command": "keyvault create"
+            },
+            {
+                "scenario": "Create a cluster with Data Lake Storage Gen2"
+            },
+            {
+                "scenario": "Route policy state change events to Event Grid"
+            },
+            {
+                "scenario": "Mount an Azure file share in Azure Container Instances"
+            },
+            {
+                "scenario": "Send events from private container registry to Event Grid"
+            },
+            {
+                "scenario": "Setup geodr and failover database failover group"
+            }
+        ],
+        "recommendations_source_list": [
+            "2",
+            "3",
+            "4"
+        ],
+        "recommendations_type_list": [
+            "3",
+            "4"
+        ],
+        "accepted_recommend_source": 3,
+        "accepted_recommend_type": 3,
+        "accepted_recommend": "group list",
+        "is_personalized": "None"
+    }
+}
 
 Adopt Solution:
 1#1#group create#the following arguments are required: --location/-l#1 2#2#1#2#group create#--name -l
