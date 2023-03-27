@@ -37,5 +37,7 @@ def main(req: func.HttpRequest,
     return func.HttpResponse(json.dumps({
         'data': results,
         'error': None,
-        'status': 200
+        'status': 200,
+        # The version of the API, which is defined in the function app settings and can be changed without redeploying the whole function.
+        'api_version': os.environ["API_Version"]
     }), status_code=200)
