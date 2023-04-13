@@ -1,4 +1,4 @@
-## Collected `az next` feedback data
+## Collected `az next` and `az interactive` feedback data
 
 ### Storage
 Collected by Telemetry
@@ -15,19 +15,19 @@ Collected by Telemetry
 
 Stored at Properties["context.default.azurecli.recommendation"]
 
-| Field                       | Content                                                | Value                                                                                                        |
-|-----------------------------|--------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| request_type                | The recommendation type that the user filters          | 1:all 2:solution 3:command 4:scenario                                                                        |
-| option                      | Options adopted by users                               | str (item value: -1:no recommendation 0:not adopted a$:accepted the $st command b$:accepted the $st scenario |
-| trigger_commands            | The last 1-2 commands that triggers the recommendation | command name                                                                                                 |
-| error_info                  | Error infos when using the recommendation of Solution  | error info                                                                                                   |
-| recommendations_list        | The list of all recommendations                        | list                                                                                                         |                                                       
-| recommendations_source_list | The data source of recommendation items                | list (item value: 1:knowledge base 2:caculation 3:Aladdin)                                                   |
-| recommendations_type_list   | The type of recommendation items                       | list (item value: 2:solution 3:command 4:scenario)                                                           |
-| accepted_recommend_source   | The data source of adoption accepted recommendation    | 1:knowledge base 2:caculation 3:Aladdin                                                                      |
-| accepted_recommend_type     | The type of accepted recommendation                    | 2:solution 3:command 4:scenario                                                                              |
-| accepted_recommend          | The contents accepted by users                         | command name/scenario name                                                                                   |
-| is_personalized             | Whether the accepted recommend is a personalized one   | bool                                                                                                         |
+| Field                       | Content                                                | Value                                                                                                                                 |
+|-----------------------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| request_type                | The recommendation type that the user filters          | 1:all 2:solution 3:command 4:scenario 5:search                                                                                        |
+| option                      | Options adopted by users                               | str (item value: -1:no result; 0:not adopted; a$:accept the $st command; b$:accept the $st scenario; c$: accepted the $st from search |
+| trigger_commands            | The last 1-2 commands that triggers the recommendation | command name                                                                                                                          |
+| error_info                  | Error infos when using the recommendation of Solution  | error info                                                                                                                            |
+| recommendations_list        | The list of all recommendations                        | list                                                                                                                                  |                                                       
+| recommendations_source_list | The data source of recommendation items                | list (item value: 1:knowledge base 2:caculation 3:Aladdin)                                                                            |
+| recommendations_type_list   | The type of recommendation items                       | list (item value: 2:solution 3:command 4:scenario)                                                                                    |
+| accepted_recommend_source   | The data source of adoption accepted recommendation    | 1:knowledge base 2:caculation 3:Aladdin                                                                                               |
+| accepted_recommend_type     | The type of accepted recommendation                    | 2:solution 3:command 4:scenario                                                                                                       |
+| accepted_recommend          | The contents accepted by users                         | command name/scenario name                                                                                                            |
+| is_personalized             | Whether the accepted recommend is a personalized one   | bool                                                                                                                                  |
 
 ### Sample
 ```
