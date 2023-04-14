@@ -4,7 +4,12 @@ import openai
 import json
 import azure.functions as func
 
-from .src.util import get_param_str
+from .src.util import get_param_str, get_param_list
+
+os.environ["OPENAI_API_KEY"] = "cd49aeb4a09f4c6d88fb330405b5c3fc"
+os.environ["OPENAI_API_VERSION"] = "2023-03-15-preview"
+os.environ["OPENAI_API_URL"] = "https://scenariogenerator.openai.azure.com/"
+os.environ["API_Version"] = "1.0.0"
 # initialize_openai_service
 # the type of the OpenAI API service
 openai.api_type = "azure"
@@ -21,7 +26,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     response_data = {"content": None, "history_msg_list": None}
     # the param dict of the chatgpt service
     user_msg = get_param_str(req, "user_msg", required=True)
-    history_msg_list = get_param_str(req, "history_msg")
+    history_msg_list = get_param_list(req, "history_msg")
     chatgpt_service_params = initialize_chatgpt_service_params()
     if history_msg_list:
         chatgpt_service_params["messages"].extend(history_msg_list)
@@ -29,7 +34,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         {"role": "user", "content": user_msg})
     try:
         response = openai.ChatCompletion.create(**chatgpt_service_params)
-        content = response["choices"][0]["content"]
+        content = response["choices"][0]["message"]["content"]
         history_msg_list.append({"role": "user", "content": user_msg})
         history_msg_list.append({"role": "assistant", "content": content})
         response_data["content"] = content
@@ -56,8 +61,10 @@ def initialize_chatgpt_service_params():
                               "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
     # if os.environ[] not None
     for key in chatgpt_service_params.keys():
-        if os.environ["OPENAI_" + key.upper()] is not None:
+        try:
             chatgpt_service_params[key] = os.environ["OPENAI_" + key.upper()]
+        except KeyError:
+            pass
     chatgpt_service_params["messages"] = default_msg
     return chatgpt_service_params
 

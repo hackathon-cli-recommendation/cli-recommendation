@@ -1,6 +1,7 @@
 from enum import Enum
 import os
 import azure.functions as func
+import logging
 
 from .exception import ParameterException
 
@@ -29,9 +30,10 @@ def get_param_str(req: func.HttpRequest, name: str, required=False, default=""):
     return value
 
 
-def get_param_int(req: func.HttpRequest, name: str, required=False, default=0):
+def get_param_list(req: func.HttpRequest, name: str, required=False, default=[]):
+    value = get_param(req, name, required, default)
     try:
-        return int(get_param(req, name, required, default))
+        return list(value)
     except ValueError:
         raise ParameterException(
-            f'Illegal parameter: the parameter "{name}" must be the type of int')
+            f'Illegal parameter: the parameter "{name}" must be the type of list')
