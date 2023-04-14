@@ -6,10 +6,6 @@ import azure.functions as func
 
 from .src.util import get_param_str, get_param_list
 
-os.environ["OPENAI_API_KEY"] = "cd49aeb4a09f4c6d88fb330405b5c3fc"
-os.environ["OPENAI_API_VERSION"] = "2023-03-15-preview"
-os.environ["OPENAI_API_URL"] = "https://scenariogenerator.openai.azure.com/"
-os.environ["API_Version"] = "1.0.0"
 # initialize_openai_service
 # the type of the OpenAI API service
 openai.api_type = "azure"
@@ -47,16 +43,14 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 def initialize_chatgpt_service_params():
     # use a dict to store the parameters of the chatgpt service
     # give initial values to the parameters
-    default_msg = [{"role": "system", "content": "You are an assistant who guide others to use Azure CLI and only provide advice on Azure CLI commands or command combinations. \n\nYou can complete the task in three steps:\n1. Parse the task that the user wants to accomplish\n2. Determine how many commands are needed to complete the task\n3. If only one command is needed, please output an example of that command. If multiple commands are required, please output an example of a set of commands.\n \nPlease note that all output formats must follow few-shot examples, do not output any other opening remarks, closing remarks, explanation and pattern."},
-                   {"role": "user", "content": "I want to create a VM"},
+    default_msg = [{"role": "system", "content": "You are an assistant who guide others to use Azure CLI and only provide advice on Azure CLI commands or command combinations. \nYou can complete the task in three steps:\n1. Parse the task that the user wants to accomplish\n2. Determine how many commands are needed to complete the task\n3. If only one command is needed, please output an example of that command. If multiple commands are required, please output an example of a set of commands\nAll output must be in the format shown in the follow few-shot examples, Each output must contain a 'Description' property to briefly describe the function of the Script, a 'CommandSet' property containing examples and descriptions of all the commands, and a 'Reason' property detailing the function and flow of the script."},
+                   {"role": "user", "content": "How to Create a cluster with Data Lake Storage Gen2"},
+                   {"role": "assistant", "content": "{'Description': 'Create a cluster with Data Lake Storage Gen2', 'CommandSet': [{'command': 'identity create', 'arguments': ['-g', '-n'], 'reason': 'Create managed identity', 'example': 'az identity create -g <RESOURCEGROUPNAME> -n <MANAGEDIDENTITYNAME>'}, {'command': 'storage account create', 'arguments': ['--name', '--resource-group', '--location', '--sku', '--kind', '--hierarchical-namespace'], 'reason': 'Create managed identity', 'example': 'az storage account create --name <STORAGEACCOUNTNAME> --resource-group <RESOURCEGROUPNAME> --location eastus --sku Standard_LRS --kind StorageV2 --hierarchical-namespace true'}, {'command': 'deployment group create', 'arguments': ['--name', '--resource-group', '--template-file', '--parameters'], 'reason': 'Azure Cloud Shell', 'example': 'az deployment group create --name HDInsightADLSGen2Deployment --resource-group <RESOURCEGROUPNAME> --template-file hdinsight-adls-gen2-template.json --parameters parameters.json'}], 'Reason': 'Use Azure Data Lake Storage Gen2 with Azure HDInsight clusters using Azure CLI.'}"},
+                   {"role": "user", "content": "Please help me create a resource group"},
                    {"role": "assistant",
-                       "content": "az vm create -n <resource_name> -g <resource_group> --image <image>"},
+                       "content": "{'Description': 'Create a Resource Group', 'CommandSet': [{'command': 'resource group create', 'arguments': ['-n', '-l'], 'reason': 'Create a resource group', 'example': 'az group create -n <RESOURCEGROUPNAME> -l <LOCATION>'}], 'Reason': 'Create a Resource Group by defining group name and location'}"},
                    {"role": "user", "content": "I want to create a website with service and database"},
-                   {"role": "assistant",
-                       "content": "// Create an App Service Plan\naz appservice plan create --name <plan_name> --resource-group <resource_group> --location <location>\n// Create a Web App\naz webapp create --name <webapp_name> --plan <plan_name> --resource-group <resource_group>\n// Create a Cosmos DB with MongoDB API\naz cosmosdb create --name <cosmosdb_name> --resource-group <resource_group> --kind <account_type>\n// Get the MongoDB URL (connectionString will be used in subsequent commands)\naz cosmosdb keys list --name <cosmosdb_name> --resource-group <resource_group> --type <account_key_type>\n// Assign the connection string to an App Setting in the Web App\naz webapp config appsettings set --name <webapp_name> --resource-group <resource_grpup> --settings <connect_string>"},
-                   {"role": "user", "content": "How to create a VM"},
-                   {"role": "assistant", "content": "az vm create -n <resource_name> -g <resource_group> --image <image>"}]
-
+                   {"role": "assistant", "content": "{'Description': 'Connect an app to MongoDB (Cosmos DB).', 'CommandSet': [{'command': 'appservice plan create', 'arguments': ['--name', '--resource-group', '--location'], 'reason': 'Create an App Service Plan', 'example': 'az appservice plan create --name $appServicePlan --resource-group $resourceGroup --location $location'}, {'command': 'webapp create', 'arguments': ['--name', '--plan', '--resource-group'], 'reason': 'Create a Web App', 'example': 'az webapp create --name $webapp --plan $appServicePlan --resource-group $resourceGroup'}, {'command': 'cosmosdb create', 'arguments': ['--name', '--resource-group', '--kind'], 'reason': 'Create a Cosmos DB with MongoDB API', 'example': 'az cosmosdb create --name $cosmosdb --resource-group $resourceGroup --kind MongoDB'}, {'command': 'cosmosdb keys list', 'arguments': ['--name', '--resource-group', '--type', '--query', '--output'], 'reason': 'Get the MongoDB URL (connectionString will be used in subsequent commands).', 'example': 'az cosmosdb keys list --name $cosmosdb --resource-group $resourceGroup --type connection-strings --query connectionStrings[0].connectionString --output tsv'}, {'command': 'webapp config appsettings set', 'arguments': ['--name', '--resource-group', '--settings'], 'reason': 'Assign the connection string to an App Setting in the Web App', 'example': 'az webapp config appsettings set --name $webapp --resource-group $resourceGroup --settings MONGODB_URL=$connectionString'}], 'Reason': 'Connect an app to MongoDB (Cosmos DB).'}"}]
     chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 800,
                               "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
     # if os.environ[] not None
@@ -65,6 +59,10 @@ def initialize_chatgpt_service_params():
             chatgpt_service_params[key] = os.environ["OPENAI_" + key.upper()]
         except KeyError:
             pass
+    try:
+        default_msg = json.loads(os.environ["OPENAI_DEFAULT_MSG"])
+    except KeyError:
+        pass
     chatgpt_service_params["messages"] = default_msg
     return chatgpt_service_params
 
