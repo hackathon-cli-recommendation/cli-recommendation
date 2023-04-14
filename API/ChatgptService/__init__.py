@@ -53,16 +53,12 @@ def initialize_chatgpt_service_params():
                    {"role": "assistant", "content": "{'Description': 'Connect an app to MongoDB (Cosmos DB).', 'CommandSet': [{'command': 'appservice plan create', 'arguments': ['--name', '--resource-group', '--location'], 'reason': 'Create an App Service Plan', 'example': 'az appservice plan create --name $appServicePlan --resource-group $resourceGroup --location $location'}, {'command': 'webapp create', 'arguments': ['--name', '--plan', '--resource-group'], 'reason': 'Create a Web App', 'example': 'az webapp create --name $webapp --plan $appServicePlan --resource-group $resourceGroup'}, {'command': 'cosmosdb create', 'arguments': ['--name', '--resource-group', '--kind'], 'reason': 'Create a Cosmos DB with MongoDB API', 'example': 'az cosmosdb create --name $cosmosdb --resource-group $resourceGroup --kind MongoDB'}, {'command': 'cosmosdb keys list', 'arguments': ['--name', '--resource-group', '--type', '--query', '--output'], 'reason': 'Get the MongoDB URL (connectionString will be used in subsequent commands).', 'example': 'az cosmosdb keys list --name $cosmosdb --resource-group $resourceGroup --type connection-strings --query connectionStrings[0].connectionString --output tsv'}, {'command': 'webapp config appsettings set', 'arguments': ['--name', '--resource-group', '--settings'], 'reason': 'Assign the connection string to an App Setting in the Web App', 'example': 'az webapp config appsettings set --name $webapp --resource-group $resourceGroup --settings MONGODB_URL=$connectionString'}], 'Reason': 'Connect an app to MongoDB (Cosmos DB).'}"}]
     chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 800,
                               "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # if os.environ[] not None
-    for key in chatgpt_service_params.keys():
-        try:
-            chatgpt_service_params[key] = os.environ["OPENAI_" + key.upper()]
-        except KeyError:
-            pass
-    try:
-        default_msg = json.loads(os.environ["OPENAI_DEFAULT_MSG"])
-    except KeyError:
-        pass
+    for key, value in chatgpt_service_params.items():
+        chatgpt_service_params[key] = os.environ.get(key, default=value)
+        if key in ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty"]:
+            chatgpt_service_params[key] = float(chatgpt_service_params[key])
+    default_msg = json.loads(os.environ.get(
+        "OPENAI_DEFAULT_MSG", default=default_msg))
     chatgpt_service_params["messages"] = default_msg
     return chatgpt_service_params
 
