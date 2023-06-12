@@ -25,7 +25,7 @@ Stored at Properties["context.default.azurecli.recommendation"]
 | recommendations_source_list | The data source of recommendation items                | list (item value: 1:knowledge base 2:caculation 3:Aladdin)                                                                            |
 | recommendations_type_list   | The type of recommendation items                       | list (item value: 2:solution 3:command 4:scenario)                                                                                    |
 | accepted_recommend_source   | The data source of adoption accepted recommendation    | 1:knowledge base 2:caculation 3:Aladdin                                                                                               |
-| accepted_recommend_type     | The type of accepted recommendation                    | 2:solution 3:command 4:scenario                                                                                                       |
+| accepted_recommend_type     | The type of accepted recommendation                    | 1:all 2:solution 3:command 4:scenario                                                                                                       |
 | accepted_recommend          | The contents accepted by users                         | command name/scenario name                                                                                                            |
 | is_personalized             | Whether the accepted recommend is a personalized one   | bool                                                                                                                                  |
 
