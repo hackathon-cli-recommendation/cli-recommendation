@@ -4,6 +4,10 @@ History
 -------
 
 .. :The first position (MAJOR version) represents a major update, the second position (MINOR version) represents version for new feature, and the third position (PATCH version) represents a minor adjustment or bugfix.
+2.0.0 (2023-06-14)
+~~~~~~~~~~~~~~~~~~
+
+* Add Chatgpt service to generate and modify scenario scripts
 
 1.0.0 (2023-03-20)
 ~~~~~~~~~~~~~~~~~~
