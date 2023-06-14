@@ -1,1 +1,1 @@
-# Recommendation Service
+# cli-recommendation
