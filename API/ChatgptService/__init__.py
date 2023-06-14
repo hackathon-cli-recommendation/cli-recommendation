@@ -19,8 +19,8 @@ openai.api_base = os.environ["OPENAI_API_URL"]
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    if req.method == "GET":
-        return func.HttpResponse("Chatgpt Service is running", status_code=200)
+    if req.method != "POST":
+        return func.HttpResponse("Chatgpt Service only supports PUT request.", status_code=200)
     if req.method == "POST":
         logging.info(
             'Chatgpt Service HTTP trigger function processed a request.')
