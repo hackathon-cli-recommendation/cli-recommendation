@@ -146,7 +146,7 @@
                 Content-Type: application/json
 
                 {
-                    "keyword": "scale+server",
+                    "keyword": "scale server",
                     "top_num": 5,
                     "type": "Scenario"
                 }
