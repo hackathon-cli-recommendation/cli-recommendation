@@ -2,6 +2,7 @@ from enum import Enum
 import os
 import azure.functions as func
 import logging
+import json
 
 from .exception import ParameterException
 
@@ -37,3 +38,11 @@ def get_param_list(req: func.HttpRequest, name: str, required=False, default=[])
     except ValueError:
         raise ParameterException(
             f'Illegal parameter: the parameter "{name}" must be the type of list')
+
+
+def is_valid_json(json_str):
+    try:
+        json.loads(json_str)
+        return True
+    except json.JSONDecodeError:
+        return False

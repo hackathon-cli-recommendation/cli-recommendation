@@ -8,6 +8,7 @@ class SearchScope(int, Enum):
     All = 1
     Scenario = 2
     Command = 3
+    Keyword = 4
 
     def get_search_fields(self):
         if self == self.All:
@@ -16,6 +17,8 @@ class SearchScope(int, Enum):
             return ["name", "description"]
         elif self == self.Command:
             return ["commandSet/command"]
+        elif self == self.Keyword:
+            return ["keyword"]
 
 
 class MatchRule(int, Enum):
@@ -53,6 +56,15 @@ def get_param_int(req: func.HttpRequest, name: str, required=False, default=0):
         raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int')
 
 
+def get_param_list(req: func.HttpRequest, name: str, required=False, default=[]):
+    value = get_param(req, name, required, default)
+    try:
+        return list(value)
+    except ValueError:
+        raise ParameterException(
+            f'Illegal parameter: the parameter "{name}" must be the type of list')
+
+
 def get_param_search_scope(req: func.HttpRequest, name: str, required=False, default=SearchScope.All):
     value = get_param(req, name, required, default)
     if isinstance(value, SearchScope):
@@ -62,7 +74,7 @@ def get_param_search_scope(req: func.HttpRequest, name: str, required=False, def
         try:
             value = SearchScope(value)
         except ValueError:
-            raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command)')
+            raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command) or 4(keyword)')
     except ValueError:
         if isinstance(value, str):
             if value.lower() == "all":
@@ -71,8 +83,10 @@ def get_param_search_scope(req: func.HttpRequest, name: str, required=False, def
                 value = SearchScope.Scenario
             elif value.lower() == "command":
                 value = SearchScope.Command
-            else:
-                raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command)')
+            elif value.lower() == "keyword":
+                value = SearchScope.Keyword
+            else:   
+                raise ParameterException(f'Illegal parameter: the parameter "{name}" should be 1(All), 2(Scenario) or 3(Command) or 4(keyword)')
         else:
             raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int or str')
     return value
