@@ -112,7 +112,7 @@
         | Name    | Type          | Is Require | Default value | Description                                          | Supported |
         | ------- | ------------- | ---------- | ------------- | ---------------------------------------------------- | --------- |
         | keyword | string        | true       | -             | The search keyword user searches                     | Yes       |
-        | type    | int or string | false      | all           | Search type, value range: 1.all 2.scenario 3.command | Yes       |
+        | scope    | int or string | false      | all           | Search type, value range: 1.all 2.scenario 3.command | Yes       |
         | top_num | int           | false      | 5             | The maximum number of search results                 | Yes       |
 
     * Response Data:
@@ -148,7 +148,7 @@
                 {
                     "keyword": "scale server",
                     "top_num": 5,
-                    "type": "Scenario"
+                    "scope": "Scenario"
                 }
         ```
 
