@@ -31,7 +31,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             result = [adjust_copilot_response(gpt_generate(question, history))]
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
-            if len(result) == 0 or result[0]['score'] < float(os.environ.get('KNOWLEDGE_DOWNGRADE_SCORE', "1.0")):
+            if len(result) == 0 or result[0]['score'] < float(os.environ.get('KNOWLEDGE_QUALITY_THRESHOLD', "1.0")):
                 result = [adjust_copilot_response(gpt_generate(question, history))]
     except CopilotException as e:
         return func.HttpResponse(e.msg, status_code=400)

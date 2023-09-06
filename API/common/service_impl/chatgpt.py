@@ -2,9 +2,9 @@ import os
 from typing import Any, Dict, List
 import json
 import openai
-from openai.error import TryAgain
+from openai.error import TryAgain, Timeout, OpenAIError
 
-from common.exception import GPTTimeOutException, GPTInvalidResultException
+from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
 from json import JSONDecodeError
 
 # initialize_openai_service
@@ -32,8 +32,10 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
         {"role": "user", "content": "\n".join(all_user_msg)})
     try:
         response = openai.ChatCompletion.create(**chatgpt_service_params)
-    except TryAgain as e:
+    except (TryAgain, Timeout) as e:
         raise GPTTimeOutException() from e
+    except OpenAIError as e:
+        raise CopilotException('There is some error from the OpenAI.') from e
     content = response["choices"][0]["message"]["content"]
     history_msg.append({"role": "user", "content": user_msg})
     history_msg.append({"role": "assistant", "content": content})
@@ -53,6 +55,8 @@ def adjust_copilot_response(response):
     if 'Reason' in content:
         response['scenario'] = content.get('Description', content['Reason'])
         response['description'] = content['Reason']
+    elif 'Description' in content:
+        response['scenario'] = content.get['Description']
     response.pop('history_msg_list')
     return response
 
