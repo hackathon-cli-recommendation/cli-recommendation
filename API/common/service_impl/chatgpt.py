@@ -45,6 +45,18 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
     return response_data
 
 
+def adjust_copilot_response(response):
+    content = response.pop("content")
+    if 'CommandSet' in content:
+        response['commandSet'] = content['CommandSet']
+        response['firstCommand'] = content['CommandSet'][0]['command']
+    if 'Reason' in content:
+        response['scenario'] = content.get('Description', content['Reason'])
+        response['description'] = content['Reason']
+    response.pop('history_msg_list')
+    return response
+
+
 def initialize_chatgpt_service_params():
     # use a dict to store the parameters of the chatgpt service
     # give initial values to the parameters
