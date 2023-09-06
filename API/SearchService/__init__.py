@@ -4,11 +4,11 @@ import os
 
 import azure.functions as func
 
-from common.util import ScenarioSourceType
-from .src.exception import ParameterException
+from common.exception import ParameterException
+from common.util import ScenarioSourceType, get_param_int, get_param_str
 from .src.search_service import get_search_results
 
-from .src.util import MatchRule, SearchScope, append_results, build_or_search_statement, build_search_statement, get_param_int, get_param_match_rule, get_param_search_scope, get_param_str
+from .src.util import MatchRule, SearchScope, append_results, build_or_search_statement, build_search_statement, get_param_match_rule, get_param_search_scope
 
 
 def main(req: func.HttpRequest,
