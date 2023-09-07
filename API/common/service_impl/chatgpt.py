@@ -1,11 +1,11 @@
-import logging
 import os
-import openai
+from typing import Any, Dict, List
 import json
-import azure.functions as func
+import openai
+from openai.error import TryAgain, Timeout, OpenAIError
 
-from common.util import get_param_str, get_param_list
-from .src.response import generate_response
+from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
+from json import JSONDecodeError
 
 # initialize_openai_service
 # the type of the OpenAI API service
@@ -18,35 +18,45 @@ openai.api_version = os.environ["OPENAI_API_VERSION"]
 openai.api_base = os.environ["OPENAI_API_URL"]
 
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    if req.method != "POST":
-        return func.HttpResponse("Chatgpt Service only supports PUT request.", status_code=200)
-    if req.method == "POST":
-        logging.info(
-            'Chatgpt Service HTTP trigger function processed a request.')
-        response_data = {"content": None, "history_msg_list": None}
-        # the param dict of the chatgpt service
-        user_msg = get_param_str(req, "user_msg", required=True)
-        history_msg = get_param_list(req, "history_msg")
-        chatgpt_service_params = initialize_chatgpt_service_params()
-        all_user_msg = []
-        if history_msg:
-            chatgpt_service_params["messages"].extend(history_msg)
-            all_user_msg = [msg["content"]
-                            for msg in history_msg if msg["role"] == "user"]
-        all_user_msg.append(user_msg)
-        chatgpt_service_params["messages"].append(
-            {"role": "user", "content": "\n".join(all_user_msg)})
-        try:
-            response = openai.ChatCompletion.create(**chatgpt_service_params)
-            content = response["choices"][0]["message"]["content"]
-            history_msg.append({"role": "user", "content": user_msg})
-            history_msg.append({"role": "assistant", "content": content})
-            response_data["content"] = json.loads(content.replace("'", '"'))
-            response_data["history_msg"] = history_msg
-            return func.HttpResponse(generate_response(data=response_data, status=200))
-        except:
-            return func.HttpResponse('There is some error from the server.', status_code=400)
+def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, Any]:
+    # the param dict of the chatgpt service
+    chatgpt_service_params = initialize_chatgpt_service_params()
+    all_user_msg = []
+    if history_msg:
+        chatgpt_service_params["messages"].extend(history_msg)
+        all_user_msg = [msg["content"]
+                        for msg in history_msg if msg["role"] == "user"]
+    all_user_msg.append(user_msg)
+    chatgpt_service_params["messages"].append(
+        {"role": "user", "content": "\n".join(all_user_msg)})
+    try:
+        response = openai.ChatCompletion.create(**chatgpt_service_params)
+    except (TryAgain, Timeout) as e:
+        raise GPTTimeOutException() from e
+    except OpenAIError as e:
+        raise CopilotException('There is some error from the OpenAI.') from e
+    content = response["choices"][0]["message"]["content"]
+    history_msg.append({"role": "user", "content": user_msg})
+    history_msg.append({"role": "assistant", "content": content})
+    try:
+        content = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
+        return build_response(content, history_msg)
+    except JSONDecodeError as e:
+        raise GPTInvalidResultException(content) from e
+
+
+def build_response(content, history):
+    response = {}
+    if 'CommandSet' in content:
+        response['commandSet'] = content['CommandSet']
+        response['firstCommand'] = content['CommandSet'][0]['command']
+    if 'Reason' in content:
+        response['scenario'] = content.get('Description', content['Reason'])
+        response['description'] = content['Reason']
+    elif 'Description' in content:
+        response['scenario'] = content.get['Description']
+    response["history_msg"] = history
+    return response
 
 
 def initialize_chatgpt_service_params():

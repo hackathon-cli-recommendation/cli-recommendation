@@ -2,7 +2,8 @@ from enum import Enum
 import os
 import azure.functions as func
 
-from .exception import ParameterException
+from common.exception import ParameterException
+from common.util import get_param
 
 class SearchScope(int, Enum):
     All = 1
@@ -22,35 +23,6 @@ class MatchRule(int, Enum):
     All = 1
     And = 2
     Or = 3
-
-
-def get_param(req: func.HttpRequest, name: str, required=True, default=None):
-    value = req.params.get(name)
-    if not value:
-        try:
-            req_body = req.get_json()
-            value = req_body.get(name)
-        except ValueError:
-            pass
-    if required and value is None:
-        raise ParameterException(f'Illegal parameter: please pass in the parameter "{name}"')
-    elif value is None:
-        return default
-    return value
-
-
-def get_param_str(req: func.HttpRequest, name: str, required=False, default=""):
-    value = get_param(req, name, required, default)
-    if not isinstance(value, str):
-        raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of string')
-    return value
-
-
-def get_param_int(req: func.HttpRequest, name: str, required=False, default=0):
-    try:
-        return int(get_param(req, name, required, default))
-    except ValueError:
-        raise ParameterException(f'Illegal parameter: the parameter "{name}" must be the type of int')
 
 
 def get_param_search_scope(req: func.HttpRequest, name: str, required=False, default=SearchScope.All):
