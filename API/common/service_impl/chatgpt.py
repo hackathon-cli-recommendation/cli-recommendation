@@ -19,7 +19,6 @@ openai.api_base = os.environ["OPENAI_API_URL"]
 
 
 def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, Any]:
-    response_data = {"content": None, "history_msg_list": None}
     # the param dict of the chatgpt service
     chatgpt_service_params = initialize_chatgpt_service_params()
     all_user_msg = []
@@ -40,15 +39,14 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
     history_msg.append({"role": "user", "content": user_msg})
     history_msg.append({"role": "assistant", "content": content})
     try:
-        response_data["content"] = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
+        content = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
+        return build_response(content, history_msg)
     except JSONDecodeError as e:
         raise GPTInvalidResultException(content) from e
-    response_data["history_msg"] = history_msg
-    return response_data
 
 
-def adjust_copilot_response(response):
-    content = response.pop("content")
+def build_response(content, history):
+    response = {}
     if 'CommandSet' in content:
         response['commandSet'] = content['CommandSet']
         response['firstCommand'] = content['CommandSet'][0]['command']
@@ -57,7 +55,7 @@ def adjust_copilot_response(response):
         response['description'] = content['Reason']
     elif 'Description' in content:
         response['scenario'] = content.get['Description']
-    response.pop('history_msg_list')
+    response["history_msg"] = history
     return response
 
 
