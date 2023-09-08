@@ -25,14 +25,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         result = []
-        error = None
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
             result = knowledge_search(question, top_num)
             if len(result) > 0 and result[0]['score'] < float(os.environ.get('KNOWLEDGE_QUALITY_THRESHOLD', "1.0")):
-                error = f"Knowledge quality is too low, score: {result[0]['score']}"
+                print(f"Knowledge quality is too low, score: {result[0]['score']}")
                 result = []
             elif len(result) == 0:
-                error = "No knowledge found"
+                print("No knowledge found")
         elif service_type == ServiceType.GPT_GENERATION:
             result = [gpt_generate(question, history)]
         elif service_type == ServiceType.MIX:
@@ -41,4 +40,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 result = [gpt_generate(question, history)]
     except CopilotException as e:
         return func.HttpResponse(e.msg, status_code=400)
-    return func.HttpResponse(generate_response(result, 200, error))
+    return func.HttpResponse(generate_response(result, 200))

@@ -101,8 +101,10 @@ def get_search_results(
         if search_type == SearchType.Semantic:
             result["score"] = result.pop("@search.reranker_score")
             captions = result.pop("@search.captions")
-            if captions:        
-                result["highlights"] = {"scenario": captions[0].highlights}
+            captions_highlights = []
+            for caption in captions:
+                captions_highlights.append(caption.highlights)
+                result["highlights"] = {"scenario": ';'.join(captions_highlights)}
         elif search_type == SearchType.FullText:
             result["score"] = result.pop("@search.score")
             result["highlights"] = result.pop("@search.highlights")
