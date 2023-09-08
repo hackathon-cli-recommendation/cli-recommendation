@@ -35,8 +35,8 @@ class SearchType(int, Enum):
 
 def knowledge_search(keyword: str, top_num: int):
     # placeholder for rate limit
-    rate_limit = False
-    if not rate_limit:
+    exceed_rate_limit = False
+    if not exceed_rate_limit:
         results = knowledge_search_semantic(keyword, top_num)
     else:
         results = knowledge_search_full_text(keyword, top_num)
