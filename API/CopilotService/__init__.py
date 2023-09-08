@@ -1,3 +1,4 @@
+import logging
 import os
 from enum import Enum
 import azure.functions as func
@@ -6,6 +7,9 @@ from common.exception import ParameterException, CopilotException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge import knowledge_search
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
+
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceType(str, Enum):
@@ -28,10 +32,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
             result = knowledge_search(question, top_num)
             if len(result) > 0 and result[0]['score'] < float(os.environ.get('KNOWLEDGE_QUALITY_THRESHOLD', "1.0")):
-                print(f"Knowledge quality is too low, score: {result[0]['score']}")
+                logger.info(f"Knowledge quality is too low, question: {question}, score: {result[0]['score']}")
                 result = []
             elif len(result) == 0:
-                print("No knowledge found")
+                logger.info("No knowledge found")
         elif service_type == ServiceType.GPT_GENERATION:
             result = [gpt_generate(question, history)]
         elif service_type == ServiceType.MIX:
