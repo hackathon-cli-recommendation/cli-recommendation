@@ -75,3 +75,11 @@ def generate_response(data, status, error=None):
         'api_version': os.environ["API_Version"]
     }
     return json.dumps(response_data)
+
+
+def is_valid_json(content):
+    try:
+        json.loads(content)
+    except ValueError:
+        return False
+    return True
