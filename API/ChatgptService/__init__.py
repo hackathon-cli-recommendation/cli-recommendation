@@ -4,7 +4,7 @@ import openai
 import json
 import azure.functions as func
 
-from .src.util import get_param_str, get_param_list, is_valid_json
+from common.util import get_param_str, get_param_list, is_valid_json
 from .src.response import generate_response
 
 # initialize_openai_service

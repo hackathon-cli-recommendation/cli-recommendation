@@ -1,8 +1,10 @@
 from enum import Enum
+import json
 import os
 import azure.functions as func
 
-from .exception import ParameterException
+from common.exception import ParameterException
+from common.util import get_param
 
 class SearchScope(int, Enum):
     All = 1
@@ -63,6 +65,14 @@ def get_param_list(req: func.HttpRequest, name: str, required=False, default=[])
     except ValueError:
         raise ParameterException(
             f'Illegal parameter: the parameter "{name}" must be the type of list')
+
+
+def is_valid_json(json_str):
+    try:
+        json.loads(json_str)
+        return True
+    except json.JSONDecodeError:
+        return False
 
 
 def get_param_search_scope(req: func.HttpRequest, name: str, required=False, default=SearchScope.All):

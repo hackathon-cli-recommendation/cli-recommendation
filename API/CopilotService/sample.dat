@@ -1,0 +1,15 @@
+{
+    "question": "How do I deploy a python application on Azure?", // 1
+    "history": [ // 2 ,optional, only for GPT call
+        {
+            "role": "user",
+            "content": "a question from user"
+        },
+        {
+            "role": "assistant",
+            "content": "the answer of the question"
+        }
+    ],
+    "top_num": 5, // 3 ,optional, only for scenario search
+    "type": "Mix / knowledgeSearch / GPTGeneration" // The service type, the mix mode is to first calls "knowledgeSearch". If "knowledgeSearch" does not meet expectations, it will fall back to "GPTGeneration"
+}
