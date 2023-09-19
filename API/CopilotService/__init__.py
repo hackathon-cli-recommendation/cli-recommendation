@@ -23,7 +23,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         question = get_param_str(req, 'question', required=True)
         history = get_param(req, 'history', default=[])
         top_num = get_param_int(req, 'top_num', default=5)
-        service_type = get_param_enum(req, 'type', ServiceType, default=ServiceType.MIX)
+        service_type = get_param_enum(req, 'type', ServiceType, default=os.environ.get("DEFAULT_SERVICE_TYPE", ServiceType.GPT_GENERATION))
     except ParameterException as e:
         return func.HttpResponse(e.msg, status_code=400)
 
