@@ -1,11 +1,16 @@
 from enum import Enum
+import json
+import openai
+from openai.error import TryAgain, Timeout, OpenAIError
 import os
 from typing import List, Optional
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
+from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
 from common.util import ScenarioSourceType
+from common.service_impl.chatgpt import initialize_chatgpt_service_params
 
 
 class SearchScope(int, Enum):
@@ -44,7 +49,9 @@ def knowledge_search(keyword: str, top_num: int):
 
 
 def knowledge_search_semantic(keyword: str, top_num: int, scope=SearchScope.Scenario):
-    source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER, ScenarioSourceType.MANUAL_INPUT]
+    # source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER, ScenarioSourceType.MANUAL_INPUT]
+    # To ensure quality, only search scenarios which source equal to 1
+    source_filter = [ScenarioSourceType.SAMPLE_REPO]
     results = get_search_results(keyword, source_filter, top_num, scope.get_search_fields(), SearchType.Semantic)
     return results
 
@@ -149,3 +156,30 @@ def append_results(results, appended_results):
     for result in appended_results:
         if not next(filter(lambda item: item["scenario"] == result["scenario"], results), None):
             results.append(result)
+
+
+def pass_verification(question, result):
+    if result[0]['score'] < float(os.environ.get('KNOWLEDGE_QUALITY_THRESHOLD', "1.0")):
+        return False
+    else:
+        answer = result[0]['description']
+        user_msg = f"question: {question}\ndescription: {answer}"
+        default_msg = r"""[{"role":"system","content":"Give you a question and a description, please refer to the following rules to determine if the content in the question is completely consistent with the description:\n1. Please determine whether the content in the question is semantically consistent with the description. If inconsistent, output False directly and do not need to continue with subsequent steps.\n2. Analyze the resources and operations on resources included in the question and description separately, and clarify what operations are used on what resources.\n3. Confirm whether the resources, operations, and corresponding relationships between operations and resources included in the question are completely consistent with the description. If they are the same or very close, output True, otherwise output False."},{"role":"user","content":"question: How to create a VM snapshot from VM image.\ndescription: Create a VM image from VM. Tutorial to create a VM image from an existing VM."},{"role":"assistant","content":"False"},{"role":"user","content":"question: I want to create a VM snapshot from VM image, could you give some suggestion?\ndescription: Create a VM snapshot from VM image. Tutorial to create a VM snapshot from an existing VM image"},{"role":"assistant","content":"True"}]"""
+        default_msg = json.loads(os.environ.get(
+            "OPENAI_CHECK_KNOWLEDGE_SEARCH_SIMILARITY_MSG", default=default_msg))
+        chatgpt_service_params = initialize_chatgpt_service_params(default_msg=default_msg)
+        all_user_msg = []
+        all_user_msg.append(user_msg)
+        chatgpt_service_params["messages"].append(
+            {"role": "user", "content": "\n".join(all_user_msg)})
+        try:
+            response = openai.ChatCompletion.create(**chatgpt_service_params)
+        except (TryAgain, Timeout) as e:
+            raise GPTTimeOutException() from e
+        except OpenAIError as e:
+            raise CopilotException('There is some error from the OpenAI.') from e
+        content = response["choices"][0]["message"]["content"]
+        content = content.replace("\"", "").replace("'", "").lower()
+        if content not in ['true', 'false']:
+            raise GPTInvalidResultException(content)
+        return True if content == 'true' else False
