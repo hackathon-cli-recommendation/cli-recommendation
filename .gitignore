@@ -131,3 +131,9 @@ API/local.settings.json
 API/local_settings.py
 
 .vscode/
+
+# local debug
+__azurite_*.json
+API/local.settings_keyword.json
+API/local.settings_origin.json
+API/local.settings_bak.json
