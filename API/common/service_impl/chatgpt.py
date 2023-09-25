@@ -36,27 +36,11 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
     except OpenAIError as e:
         raise CopilotException('There is some error from the OpenAI.') from e
     content = response["choices"][0]["message"]["content"]
-    history_msg.append({"role": "user", "content": user_msg})
-    history_msg.append({"role": "assistant", "content": content})
     try:
         content = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
-        return build_response(content, history_msg)
+        return content
     except JSONDecodeError as e:
         raise GPTInvalidResultException(content) from e
-
-
-def build_response(content, history):
-    response = {}
-    if 'CommandSet' in content:
-        response['commandSet'] = content['CommandSet']
-        response['firstCommand'] = content['CommandSet'][0]['command']
-    if 'Reason' in content:
-        response['scenario'] = content.get('Description', content['Reason'])
-        response['description'] = content['Reason']
-    elif 'Description' in content:
-        response['scenario'] = content.get['Description']
-    response["history_msg"] = history
-    return response
 
 
 def initialize_chatgpt_service_params(default_msg=None, chatgpt_service_params=None):
