@@ -6,7 +6,7 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge import knowledge_search, pass_verification
-from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
+from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response, verify_token
 
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ class ServiceType(str, Enum):
     GPT_GENERATION = 'GPTGeneration'
 
 
+@verify_token
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         question = get_param_str(req, 'question', required=True)
