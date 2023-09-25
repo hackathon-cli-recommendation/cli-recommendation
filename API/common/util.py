@@ -96,18 +96,18 @@ def verify_token(func):
         parts = token.split(".")
         header = json.loads(base64.b64decode(parts[0] +"==").decode("utf-8")) 
         payload = json.loads(base64.b64decode(parts[1] +"==").decode("utf-8"))
-        if 'alg' not in header or 'kid' not in header or 'azp' not in payload or 'aud' not in payload:
-            print("Token is invalid.")
+        if 'alg' not in header or 'kid' not in header or 'aud' not in payload or ('azp' not in payload and 'appid' not in payload):
+            logger.error("Token is invalid.")
             return HttpResponse("Token is invalid", status_code=401)
         alg = header['alg']
         kid = header['kid']
-        azp = payload['azp']
+        azp = payload['azp'] if 'azp' in payload else payload['appid']
         aud = payload['aud']
-        if azp not in os.environ.get("ALLOWED_APP_IDS", "40b5afcb-b0db-4d2c-83a0-083dbb8e0c14,19ab3e9c-cfdb-4d6e-8e4f-342ef4f9e97d,a942385d-6d3c-415b-bfbb-7f4350377466").split(','):
+        if azp not in os.environ["ALLOWED_APP_IDS"].split(','):
             logger.error("App ID is invalid.")
             return HttpResponse("App ID is invalid", status_code=401)
 
-        tenant_id = os.environ.get("MICROSOFT_TENANT_ID", "72f988bf-86f1-41af-91ab-2d7cd011db47")
+        tenant_id = os.environ["MICROSOFT_TENANT_ID"]
         jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
         response = requests.get(jwks_url)
