@@ -36,6 +36,8 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
     except OpenAIError as e:
         raise CopilotException('There is some error from the OpenAI.') from e
     content = response["choices"][0]["message"]["content"]
+    if "out of my scope" in content and content.startswith("Sorry"):
+        return None
     try:
         content = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
         return content
