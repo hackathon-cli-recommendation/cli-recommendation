@@ -38,11 +38,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             elif len(result) == 0:
                 logger.info("No knowledge found")
         elif service_type == ServiceType.GPT_GENERATION:
-            result = [gpt_generate(question, history)]
+            answer = gpt_generate(question, history)
+            result = [answer] if answer else []
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
             if len(result) == 0 or not pass_verification(question, result):
-                result = [gpt_generate(question, history)]
+                answer = gpt_generate(question, history)
+                result = [answer] if answer else []
     except CopilotException as e:
         return func.HttpResponse(e.msg, status_code=400)
     return func.HttpResponse(generate_response(result, 200))
