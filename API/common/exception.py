@@ -18,3 +18,8 @@ class GPTTimeOutException(CopilotException):
 class GPTInvalidResultException(CopilotException):
     def __init__(self) -> None:
         super().__init__('GPT generated result could not be parsed into json')
+
+
+class GPTInvalidBoolException(CopilotException):
+    def __init__(self) -> None:
+        super().__init__('GPT generated result is not a bool value')

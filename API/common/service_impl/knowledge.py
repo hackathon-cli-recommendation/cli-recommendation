@@ -7,7 +7,7 @@ from typing import List, Optional
 import openai
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
+from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException, GPTInvalidBoolException
 from common.service_impl.chatgpt import initialize_chatgpt_service_params
 from common.util import ScenarioSourceType
 from openai.error import OpenAIError, Timeout, TryAgain
@@ -183,6 +183,6 @@ def pass_verification(question, result):
         content = response["choices"][0]["message"]["content"]
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
-            logger.error(f"JSONDecodeError: {content}")
-            raise GPTInvalidResultException
+            logger.error(f"Not a bool value error: {content}")
+            raise GPTInvalidBoolException
         return True if content == 'true' else False
