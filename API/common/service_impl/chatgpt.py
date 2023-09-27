@@ -3,9 +3,14 @@ from typing import Any, Dict, List
 import json
 import openai
 from openai.error import TryAgain, Timeout, OpenAIError, RateLimitError
+import logging
 
 from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
 from json import JSONDecodeError
+
+
+logger = logging.getLogger(__name__)
+
 
 # initialize_openai_service
 # the type of the OpenAI API service
@@ -49,6 +54,7 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
             content = json.loads(content)
         return content
     except JSONDecodeError as e:
+        logger.error(f"JSONDecodeError: {content}")
         raise GPTInvalidResultException from e
 
 

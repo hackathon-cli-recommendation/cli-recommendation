@@ -1,16 +1,18 @@
-from enum import Enum
 import json
-import openai
-from openai.error import TryAgain, Timeout, OpenAIError
+import logging
 import os
+from enum import Enum
 from typing import List, Optional
 
+import openai
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-
 from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
-from common.util import ScenarioSourceType
 from common.service_impl.chatgpt import initialize_chatgpt_service_params
+from common.util import ScenarioSourceType
+from openai.error import OpenAIError, Timeout, TryAgain
+
+logger = logging.getLogger(__name__)
 
 
 class SearchScope(int, Enum):
@@ -181,5 +183,6 @@ def pass_verification(question, result):
         content = response["choices"][0]["message"]["content"]
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
+            logger.error(f"JSONDecodeError: {content}")
             raise GPTInvalidResultException
         return True if content == 'true' else False
