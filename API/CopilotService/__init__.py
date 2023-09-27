@@ -46,5 +46,5 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 answer = gpt_generate(question, history)
                 result = [answer] if answer else []
     except CopilotException as e:
-        return func.HttpResponse(e.msg, status_code=400)
+        return func.HttpResponse(e.msg, status_code=500)
     return func.HttpResponse(generate_response(result, 200))

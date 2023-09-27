@@ -181,5 +181,5 @@ def pass_verification(question, result):
         content = response["choices"][0]["message"]["content"]
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
-            raise GPTInvalidResultException(content)
+            raise GPTInvalidResultException
         return True if content == 'true' else False

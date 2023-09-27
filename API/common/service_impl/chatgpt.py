@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List
 import json
 import openai
-from openai.error import TryAgain, Timeout, OpenAIError
+from openai.error import TryAgain, Timeout, OpenAIError, RateLimitError
 
 from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException
 from json import JSONDecodeError
@@ -33,16 +33,23 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
         response = openai.ChatCompletion.create(**chatgpt_service_params)
     except (TryAgain, Timeout) as e:
         raise GPTTimeOutException() from e
+    except RateLimitError as e:
+        raise CopilotException('The OpenAI API rate limit is exceeded.') from e
     except OpenAIError as e:
         raise CopilotException('There is some error from the OpenAI.') from e
     content = response["choices"][0]["message"]["content"]
     if "out of my scope" in content and content.startswith("Sorry"):
         return None
     try:
-        content = json.loads(content.replace("\"", "\\\"").replace("'", '"'))
+        # If only single quotes exist, replace them with double quotes.
+        if "'" in content and not '"' in content:
+            content = json.loads(content.replace("'", '"'))
+        # In other cases, convert directly to json
+        else:
+            content = json.loads(content)
         return content
     except JSONDecodeError as e:
-        raise GPTInvalidResultException(content) from e
+        raise GPTInvalidResultException from e
 
 
 def initialize_chatgpt_service_params(default_msg=None, chatgpt_service_params=None):
