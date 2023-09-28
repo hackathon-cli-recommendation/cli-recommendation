@@ -89,6 +89,9 @@ def generate_response(data, status, error=None):
 def verify_token(func):
     @wraps(func)
     def wrapper(req: HttpRequest) -> HttpResponse:
+        auth_enabled = os.environ.get("ENABLE_AUTH", "True").lower() == "true"
+        if not auth_enabled:
+            return func(req)
         token = req.headers.get('Authorization')
         if not token:
             return HttpResponse("Authorization token is missing", status_code=401)
