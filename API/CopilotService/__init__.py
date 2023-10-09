@@ -26,6 +26,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         top_num = get_param_int(req, 'top_num', default=5)
         service_type = get_param_enum(req, 'type', ServiceType, default=os.environ.get("DEFAULT_SERVICE_TYPE", ServiceType.GPT_GENERATION))
     except ParameterException as e:
+        logger.error(f'Response Status 400: ParameterException: {e.msg}')
         return func.HttpResponse(e.msg, status_code=400)
 
     try:
@@ -46,5 +47,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 answer = gpt_generate(question, history)
                 result = [answer] if answer else []
     except CopilotException as e:
+        logger.error(f'Response Status 500: CopilotException: {e.msg}')
         return func.HttpResponse(e.msg, status_code=500)
     return func.HttpResponse(generate_response(result, 200))
