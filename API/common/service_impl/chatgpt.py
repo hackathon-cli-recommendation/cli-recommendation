@@ -43,7 +43,8 @@ def gpt_generate(user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, 
     except OpenAIError as e:
         raise CopilotException('There is some error from the OpenAI.') from e
     content = response["choices"][0]["message"]["content"]
-    if "out of my scope" in content and content.startswith("Sorry"):
+    if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
+        logger.info(f"OpenAI Raw Output: {content}")
         return None
     try:
         # If only single quotes exist, replace them with double quotes.
