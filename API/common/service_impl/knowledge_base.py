@@ -7,12 +7,11 @@ from typing import List, Optional
 import openai
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException, GPTInvalidBoolException
-from common.service_impl.chatgpt import initialize_chatgpt_service_params
-from common.util import ScenarioSourceType
-from openai.error import OpenAIError, Timeout, TryAgain
 
-logger = logging.getLogger(__name__)
+from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException, GPTInvalidBoolException
+from common.util import ScenarioSourceType
+from common.service_impl.chatgpt import initialize_chatgpt_service_params, gpt_generate
+from openai.error import OpenAIError, Timeout, TryAgain
 
 
 class SearchScope(int, Enum):
@@ -167,20 +166,9 @@ def pass_verification(question, result):
         answer = result[0]['description']
         user_msg = f"question: {question}\ndescription: {answer}"
         default_msg = r"""[{"role":"system","content":"Give you a question and a description, please refer to the following rules to determine if the content in the question is completely consistent with the description:\n1. Please determine whether the content in the question is semantically consistent with the description. If inconsistent, output False directly and do not need to continue with subsequent steps.\n2. Analyze the resources and operations on resources included in the question and description separately, and clarify what operations are used on what resources.\n3. Confirm whether the resources, operations, and corresponding relationships between operations and resources included in the question are completely consistent with the description. If they are the same or very close, output True, otherwise output False."},{"role":"user","content":"question: How to create a VM snapshot from VM image.\ndescription: Create a VM image from VM. Tutorial to create a VM image from an existing VM."},{"role":"assistant","content":"False"},{"role":"user","content":"question: I want to create a VM snapshot from VM image, could you give some suggestion?\ndescription: Create a VM snapshot from VM image. Tutorial to create a VM snapshot from an existing VM image"},{"role":"assistant","content":"True"}]"""
-        default_msg = json.loads(os.environ.get(
+        check_similarity_msg = json.loads(os.environ.get(
             "OPENAI_CHECK_KNOWLEDGE_SEARCH_SIMILARITY_MSG", default=default_msg))
-        chatgpt_service_params = initialize_chatgpt_service_params(default_msg=default_msg)
-        all_user_msg = []
-        all_user_msg.append(user_msg)
-        chatgpt_service_params["messages"].append(
-            {"role": "user", "content": "\n".join(all_user_msg)})
-        try:
-            response = openai.ChatCompletion.create(**chatgpt_service_params)
-        except (TryAgain, Timeout) as e:
-            raise GPTTimeOutException() from e
-        except OpenAIError as e:
-            raise CopilotException('There is some error from the OpenAI.') from e
-        content = response["choices"][0]["message"]["content"]
+        content = gpt_generate(check_similarity_msg, question)
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
             logger.error(f"Not a bool value error: {content}")
