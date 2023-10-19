@@ -8,7 +8,7 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException, GPTInvalidResultException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.knowledge_index import retrieve_chunks_for_text
+from common.service_impl.learn_knowledge_index import retrieve_chunks_for_text
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
 from common.auth import verify_token
 from json import JSONDecodeError
@@ -53,7 +53,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(generate_response(result, 200))
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower == "true":
-            task_list, usage_context = asyncio.run(_retrieve_context_from_knowledge_index(question))
+            task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
             question = _add_context_to_queston(question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
@@ -73,7 +73,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(generate_response(result, 200))
 
 
-async def _retrieve_context_from_knowledge_index(question):
+async def _retrieve_context_from_learn_knowledge_index(question):
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
     generate_results = gpt_generate(system_msg, question)
     task_list = json.loads(generate_results)

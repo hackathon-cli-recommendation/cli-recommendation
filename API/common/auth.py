@@ -4,6 +4,8 @@ import requests
 import json
 import base64
 import logging
+import msal
+import os
 
 from functools import wraps
 from jwt.algorithms import RSAAlgorithm
@@ -63,3 +65,15 @@ def verify_token(func):
             return HttpResponse(f"Token validation failed: {e}", status_code=401)
         return func(req)
     return wrapper
+
+
+def _get_auth_token(scope):
+    app = msal.ConfidentialClientApplication(client_id=os.environ["CLIENT_ID"], authority=os.environ["AUTHORITY_URL"], 
+                                             client_credential=os.environ["CLIENT_SECRET"])
+    result = app.acquire_token_for_client(scopes=scope)
+    return result['access_token']
+
+
+def get_auth_token_for_learn_knowlegde_index():
+    scope = [os.environ["LEARN_KNOWLEDGE_INEX_SCOPE"]]
+    return _get_auth_token(scope)

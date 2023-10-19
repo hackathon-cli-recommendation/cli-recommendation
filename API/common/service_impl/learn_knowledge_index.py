@@ -6,8 +6,8 @@ import re
 
 from common.util import determine_strings_are_similar, parse_command_info
 
-# knowledge index service endpoint URL  
-knowledge_index_url = os.environ["KNOWLEDGE_INDEX_SERVICE_URL"]
+# learn knowledge index service endpoint URL  
+learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
 
@@ -34,11 +34,11 @@ def _embedding_text_to_vector(text):
     return result.data[0].embedding
 
 
-def _retrieve_chunks_from_knowledge_index_service(vector_values, filter_command):  # pylint: disable=unused-argument
+def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):  # pylint: disable=unused-argument
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': os.environ["KNOWLEDGE_INDEX_ACCESS_TOKEN"]
+        'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"]
     }
 
     filter = "depotName eq 'Azure.azure-cli-docs'"
@@ -53,11 +53,11 @@ def _retrieve_chunks_from_knowledge_index_service(vector_values, filter_command)
         }
     }
 
-    score_threshold = os.environ["KNOWLEDGE_INDEX_SCORE_THRESHOLD"]
+    score_threshold = os.environ["LEARN_KNOWLEDGE_INDEX_SCORE_THRESHOLD"]
     if score_threshold:
-        knowledge_index_url = knowledge_index_url + "?scoreThreshold=" + score_threshold
+        learn_knowledge_index_url = learn_knowledge_index_url + "?scoreThreshold=" + score_threshold
 
-    result = requests.post(knowledge_index_url, json.dumps(payload), headers=headers)
+    result = requests.post(learn_knowledge_index_url, json.dumps(payload), headers=headers)
     if result.status_code != 200:
         logging.error('Status:{} {} ErrorMessage:{}'.format(result.status_code, result.reason, result.text))
         return []
@@ -74,19 +74,19 @@ def retrieve_chunks_for_atomic_task(task_info):
     is_command = task_info.startswith("az ")
     if is_command:
         command_info, parameters_info = parse_command_info(task_info)
-        chunk_items = _retrieve_chunks_from_knowledge_index_service(vector_values, filter_command=command_info)
+        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
         # If the split subtask is a correct command, then accurately search for chunks related to this command
         if chunk_items:
             command_chunks_info = merge_chunks_by_command(chunk_items)[0]
 
         else:
             # If it is a command that cannot be accurately matched, it indicates that this command is fabricated or expired. Then, use vector query for similarity search
-            chunk_items = _retrieve_chunks_from_knowledge_index_service(vector_values)
+            chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
 
 
 
     # If it is a description of a subtask, use vector query for similarity search
-    return _retrieve_chunks_from_knowledge_index_service(vector_values)
+    return _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
 
 
 def convert_chunks_to_json(chunks_list):
