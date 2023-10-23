@@ -5,3 +5,4 @@ azure-search-documents>=11.4.0b3
 PyJWT
 cryptography
 rapidfuzz
+msal

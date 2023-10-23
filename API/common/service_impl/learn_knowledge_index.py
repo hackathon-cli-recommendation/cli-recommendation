@@ -6,35 +6,37 @@ import re
 
 from common.util import determine_strings_are_similar, parse_command_info
 
-# learn knowledge index service endpoint URL  
-learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
-
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
 
 
 def _embedding_text_to_vector(text):
+    try:
+        headers = {
+            'Content-Type': 'application/json',
+            'api-key': os.environ["OPENAI_API_KEY"]
+        }
 
-    headers = {
-        'Content-Type': 'application/json',
-        'api-key': os.environ["OPENAI_API_KEY"]
-    }
+        payload = {
+            "input": text
+        }
 
-    payload = {
-        "input": text
-    }
+        result = requests.post(embedding_model_url, json.dumps(payload), headers=headers)
+        result.raise_for_status()
 
-    result = requests.post(embedding_model_url, json.dumps(payload), headers=headers)
-    if result.status_code != 200:
-        logging.error('Status:{} {} ErrorMessage:{}'.format(result.status_code, result.reason, result.text))
+        data = result.json().get("data")
+        if not data or not data[0].get("embedding"):
+            logging.error('No embedding vector for the text %s', text)
+            return []
+
+        return data[0]["embedding"]
+    except requests.exceptions.RequestException as e:
+        logging.error('Error while retrieving embedding vector for the text %s: %s', text, e)
         return []
-    if not result.data or not result.data[0].embedding:
-        logging.error('No embedding vector for the text {}', text)
-        return []
-
-    return result.data[0].embedding
 
 
-def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):  # pylint: disable=unused-argument
+def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):
+    # learn knowledge index service endpoint URL  
+    learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
 
     headers = {
         'Content-Type': 'application/json',
@@ -43,32 +45,29 @@ def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_co
 
     filter = "depotName eq 'Azure.azure-cli-docs'"
     if filter_command:
-        filter = "({}) and (title eq '{}')".format(filter, filter_command)
+        filter = f"({filter}) and (title eq '{filter_command}')"
 
     payload = {
         "filter": filter,
         "vector":{
             "values": vector_values,
-            "top": os.environ["RETRIEVED_NUMBER_OF_CHUNKS"]
+            "top": int(os.environ["RETRIEVED_NUMBER_OF_CHUNKS"])
         }
     }
 
-    score_threshold = os.environ["LEARN_KNOWLEDGE_INDEX_SCORE_THRESHOLD"]
+    score_threshold = os.environ.get("LEARN_KNOWLEDGE_INDEX_SCORE_THRESHOLD")
     if score_threshold:
         learn_knowledge_index_url = learn_knowledge_index_url + "?scoreThreshold=" + score_threshold
 
-    result = requests.post(learn_knowledge_index_url, json.dumps(payload), headers=headers)
+    result = requests.post(learn_knowledge_index_url, json=payload, headers=headers)
     if result.status_code != 200:
         logging.error('Status:{} {} ErrorMessage:{}'.format(result.status_code, result.reason, result.text))
         return []
-    if not result.items:
-        logging.error('No retrieved chunks')
-        return []
 
-    return convert_chunks_to_json(result.items)
+    return convert_chunks_to_json(result.json())
 
 
-def retrieve_chunks_for_atomic_task(task_info):
+async def retrieve_chunks_for_atomic_task(task_info):
     vector_values = _embedding_text_to_vector(task_info)
 
     is_command = task_info.startswith("az ")
@@ -77,16 +76,18 @@ def retrieve_chunks_for_atomic_task(task_info):
         chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
         # If the split subtask is a correct command, then accurately search for chunks related to this command
         if chunk_items:
-            command_chunks_info = merge_chunks_by_command(chunk_items)[0]
+            return merge_chunks_by_command(chunk_items)[0]
 
         else:
             # If it is a command that cannot be accurately matched, it indicates that this command is fabricated or expired. Then, use vector query for similarity search
             chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+            return merge_chunks_by_command(chunk_items)[0]
 
 
 
     # If it is a description of a subtask, use vector query for similarity search
-    return _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+    chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+    return merge_chunks_by_command(chunk_items)[0]
 
 
 def convert_chunks_to_json(chunks_list):

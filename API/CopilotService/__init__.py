@@ -8,7 +8,7 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException, GPTInvalidResultException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunks_for_text
+from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
 from common.auth import verify_token
 from json import JSONDecodeError
@@ -52,7 +52,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
             return func.HttpResponse(generate_response(result, 200))
 
-        if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower == "true":
+        if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
             question = _add_context_to_queston(question, task_list, usage_context)
 
@@ -79,12 +79,15 @@ async def _retrieve_context_from_learn_knowledge_index(question):
     task_list = json.loads(generate_results)
 
     splited_tasks = []
-    for task_desc in task_list:
-        splited_tasks.append(asyncio.create_task(retrieve_chunks_for_text(task_desc)))
+    for task_info in task_list:
+        # use task command as task info when length of task info > 1, otherwise use task desc as task info
+        task_info = task_info.split("||")
+        task_info = task_info[1] if len(task_info) > 1 else task_info[0]
+        splited_tasks.append(asyncio.create_task(retrieve_chunks_for_atomic_task(task_info)))
 
     chunks_list = []
     if len(splited_tasks) > 0:
-        chunks_list = await asyncio.gather(splited_tasks)
+        chunks_list = await asyncio.gather(*splited_tasks)
 
     # TODO The logic of filtering, ranking, and aggregating chunks
 
@@ -93,11 +96,11 @@ async def _retrieve_context_from_learn_knowledge_index(question):
 
 def _add_context_to_queston(question, task_list, usage_context):
     if task_list:
-        guiding_steps_separation = "Here are the steps you can refer to for this question:\n"
-        question = question + guiding_steps_separation + task_list
+        guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
+        question = question + guiding_steps_separation + str(task_list) + '\n'
     if task_list:
-        commands_info_separation = "Below are some potentially relevant CLI commands information as context, please select the commands information that may be used in the scenario of the question from context, and supplement the missing commands information of context\n"
-        question = question + commands_info_separation + usage_context
+        commands_info_separation = "\nBelow are some potentially relevant CLI commands information as context, please select the commands information that may be used in the scenario of the question from context, and supplement the missing commands information of context\n"
+        question = question + commands_info_separation + str(usage_context)
     return question
 
 
