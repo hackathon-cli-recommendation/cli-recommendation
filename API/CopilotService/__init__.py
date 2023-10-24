@@ -94,22 +94,17 @@ async def _retrieve_context_from_learn_knowledge_index(question):
             task_list.append(cmd)
         else:
             task_list.append(desc)
-            chunk_tasks.append(asyncio.create_task(retrieve_chunk_for_atomic_task(desc, cmd, validate_result)))
+            chunk_tasks.append(asyncio.create_task(retrieve_chunk_for_atomic_task(desc, cmd, validate_result.msg if validate_result else None)))
 
     chunks_list = []
     if len(chunk_tasks) > 0:
         chunks_list = await asyncio.gather(*chunk_tasks)
+        chunks_list = [chunk for chunk in chunks_list if chunk is not None]
 
     chunks_list = merge_chunks_by_command(chunks_list)
-    n_chunks_list = []
-    for task, chunks in zip(task_list, chunks_list):
-        if 'command' in task:
-            n_chunks_list.append(filter_chunks(chunks, task['command']))
-        else:
-            n_chunks_list.append(chunks)
     # TODO The logic of filtering, ranking, and aggregating chunks
 
-    return raw_task_list, n_chunks_list
+    return raw_task_list, chunks_list
 
 
 def _add_context_to_question(question, task_list, usage_context):

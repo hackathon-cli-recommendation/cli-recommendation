@@ -90,7 +90,8 @@ async def retrieve_chunk_for_atomic_task(task: str, command: Optional[str] = Non
     else:
         chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
 
-    return merge_chunks_by_command(chunk_items)[0]
+    chunks = merge_chunks_by_command(chunk_items)
+    return chunks[0] if chunks else None
 
 
 def convert_chunks_to_json(chunks_list):
