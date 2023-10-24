@@ -22,7 +22,7 @@ openai.api_version = os.environ["OPENAI_API_VERSION"]
 openai.api_base = os.environ["OPENAI_API_URL"]
 
 
-def gpt_generate(system_msg: str, user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, Any]:
+def gpt_generate(system_msg: str, user_msg: str, history_msg: List[Dict[str, str]]) -> str:
     # the param dict of the chatgpt service
     chatgpt_service_params = initialize_chatgpt_service_params(system_msg)
     all_user_msg = []

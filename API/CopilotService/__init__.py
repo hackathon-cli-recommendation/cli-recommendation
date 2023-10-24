@@ -8,11 +8,13 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException, GPTInvalidResultException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task
+from common.service_impl.learn_knowledge_index import retrieve_chunk_for_atomic_task, filter_chunks, \
+    merge_chunks_by_command
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
 from common.auth import verify_token
 from json import JSONDecodeError
 
+from common import validate_command_in_task
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
-            question = _add_context_to_queston(question, task_list, usage_context)
+            question = _add_context_to_question(question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
             gpt_result = gpt_generate(system_msg, question, history)
@@ -77,31 +79,44 @@ async def _retrieve_context_from_learn_knowledge_index(question):
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
     generate_results = gpt_generate(system_msg, question, history_msg=[])
     try:
-        task_list = _build_scenario_response(generate_results)
+        raw_task_list = _build_scenario_response(generate_results)
     except Exception as e:
         logger.error(f"Error while parsing the generate results: {generate_results}, {e}")
 
-    splited_tasks = []
-    for task_info in task_list:
+    task_list = []
+    chunk_tasks = []
+    for raw_task in raw_task_list:
         # use task command as task info when length of task info > 1, otherwise use task desc as task info
-        task_info = task_info.split("||")
-        task_info = task_info[1] if len(task_info) > 1 else task_info[0]
-        splited_tasks.append(asyncio.create_task(retrieve_chunks_for_atomic_task(task_info)))
+        desc = raw_task.split("||")[0]
+        cmd = raw_task.split("||")[1] if len(raw_task.split("||")) > 1 else None
+        validate_result = validate_command_in_task(cmd) if cmd else None
+        if cmd and validate_result is None:
+            task_list.append(cmd)
+        else:
+            task_list.append(desc)
+            chunk_tasks.append(asyncio.create_task(retrieve_chunk_for_atomic_task(desc, cmd, validate_result)))
 
     chunks_list = []
-    if len(splited_tasks) > 0:
-        chunks_list = await asyncio.gather(*splited_tasks)
+    if len(chunk_tasks) > 0:
+        chunks_list = await asyncio.gather(*chunk_tasks)
 
+    chunks_list = merge_chunks_by_command(chunks_list)
+    n_chunks_list = []
+    for task, chunks in zip(task_list, chunks_list):
+        if 'command' in task:
+            n_chunks_list.append(filter_chunks(chunks, task['command']))
+        else:
+            n_chunks_list.append(chunks)
     # TODO The logic of filtering, ranking, and aggregating chunks
 
-    return task_list, chunks_list
+    return raw_task_list, n_chunks_list
 
 
-def _add_context_to_queston(question, task_list, usage_context):
+def _add_context_to_question(question, task_list, usage_context):
     if task_list:
         guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
         question = question + guiding_steps_separation + str(task_list) + '\n'
-    if task_list:
+    if usage_context:
         commands_info_separation = "\nBelow are some potentially relevant CLI commands information as context, please select the commands information that may be used in the scenario of the question from context, and supplement the missing commands information of context\n"
         question = question + commands_info_separation + str(usage_context)
     return question

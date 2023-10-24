@@ -1,4 +1,6 @@
 import os
+from typing import Optional
+
 import requests
 import json
 import logging
@@ -67,26 +69,27 @@ def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_co
     return convert_chunks_to_json(result.json())
 
 
-async def retrieve_chunks_for_atomic_task(task_info):
-    vector_values = _embedding_text_to_vector(task_info)
+async def retrieve_chunk_for_atomic_task(task: str, command: Optional[str] = None, failure_info: Optional[str] = None):
+    """
+    Retrieve chunks according to task info
+    Args:
+        task: task description
+        command: a possible incorrect command produced by GPT
+        failure_info: the reason for incorrect command
+    Returns: List of chunks that are related to the task
+    """
+    vector_values = _embedding_text_to_vector(task)
 
-    is_command = task_info.startswith("az ")
-    if is_command:
-        command_info, parameters_info = parse_command_info(task_info)
-        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
-        # If the split subtask is a correct command, then accurately search for chunks related to this command
-        if chunk_items:
-            return merge_chunks_by_command(chunk_items)[0]
-
-        else:
-            # If it is a command that cannot be accurately matched, it indicates that this command is fabricated or expired. Then, use vector query for similarity search
+    if command and failure_info:
+        if 'Unknown Command' in failure_info or 'not an Azure CLI command' in failure_info:
             chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
-            return merge_chunks_by_command(chunk_items)[0]
+        else:
+            command_sig = command.split(' -', 1)[0].strip()
+            chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_sig)
+            chunk_items = filter_chunks(chunk_items, command)
+    else:
+        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
 
-
-
-    # If it is a description of a subtask, use vector query for similarity search
-    chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
     return merge_chunks_by_command(chunk_items)[0]
 
 
@@ -123,6 +126,35 @@ def convert_chunks_to_json(chunks_list):
     return data_list
 
 
+def filter_chunks(chunks_list, command):
+    filtered_chunks = []
+    for chunk in chunks_list:
+        if command.startswith(chunk['command']):
+            filtered_chunks.append(filter_chunk_parameters(chunk, command))
+    if filtered_chunks:
+        return filtered_chunks
+
+    command_sig = command.split(' -', 1)[0]
+    for chunk in chunks_list:
+        if determine_strings_are_similar(command_sig[3:], chunk['command'][3:]):
+            filtered_chunks.append(filter_chunk_parameters(chunk, command))
+    if filtered_chunks:
+        return filtered_chunks
+
+    for chunk in chunks_list:
+        filtered_chunks.append(filter_chunk_parameters(chunk, command))
+    return filtered_chunks
+
+
+def filter_chunk_parameters(chunk, command):
+    n_chunk = chunk.copy()
+    n_chunk['optional parameters'] = []
+    for chunk_param in chunk['optional parameters']:
+        if is_param_related_to_command(chunk_param, command):
+            n_chunk['optional parameters'].append(chunk_param)
+    return n_chunk
+
+
 def merge_chunks_by_command(chunks_list):
     summary_dict = {}
     for chunk in chunks_list:
@@ -147,6 +179,14 @@ def merge_chunks_by_command(chunks_list):
 
     merged_chunks = list(summary_dict.values())
     return merged_chunks
+
+
+def is_param_related_to_command(chunk_param, command):
+    for cmd_param in [p for p in command.split() if p.startswith('-')]:
+        for chunk_param_option in chunk_param['name'].split():
+            if determine_strings_are_similar(chunk_param_option, cmd_param):
+                return True
+    return False
 
 
 def get_top_chunks(chunks_list, top_num=3):
