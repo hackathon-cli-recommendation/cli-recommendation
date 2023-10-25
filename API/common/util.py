@@ -1,13 +1,18 @@
 
 import json
+import logging
 import os
 import rapidfuzz
+import time
 
 from enum import Enum
 import azure.functions as func
 from rapidfuzz import fuzz
 
 from common.exception import ParameterException
+
+
+logger = logging.getLogger(__name__)
 
 
 class ScenarioSourceType(int, Enum):
@@ -101,3 +106,13 @@ def parse_command_info(command_info):
 
     command_signature = ' '.join(command_part)
     return command_signature, arguments_part
+
+def timing_decorator(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"{func.__name__} operation time: {elapsed_time} seconds.")
+        return result
+    return wrapper

@@ -1,6 +1,5 @@
 import os
-import requests
-import json
+import httpx
 import logging
 import re
 
@@ -9,7 +8,7 @@ from common.util import determine_strings_are_similar, parse_command_info
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
 
 
-def _embedding_text_to_vector(text):
+async def _embedding_text_to_vector(text):
     try:
         headers = {
             'Content-Type': 'application/json',
@@ -20,8 +19,9 @@ def _embedding_text_to_vector(text):
             "input": text
         }
 
-        result = requests.post(embedding_model_url, json.dumps(payload), headers=headers)
-        result.raise_for_status()
+        async with httpx.AsyncClient() as client:
+            result = await client.post(embedding_model_url, json=payload, headers=headers)
+            result.raise_for_status()
 
         data = result.json().get("data")
         if not data or not data[0].get("embedding"):
@@ -29,64 +29,65 @@ def _embedding_text_to_vector(text):
             return []
 
         return data[0]["embedding"]
-    except requests.exceptions.RequestException as e:
+    except httpx.RequestError as e:
         logging.error('Error while retrieving embedding vector for the text %s: %s', text, e)
         return []
 
 
-def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):
-    # learn knowledge index service endpoint URL  
-    learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
+async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):
+    try:
+        # learn knowledge index service endpoint URL  
+        learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"]
-    }
-
-    filter = "depotName eq 'Azure.azure-cli-docs'"
-    if filter_command:
-        filter = f"({filter}) and (title eq '{filter_command}')"
-
-    payload = {
-        "filter": filter,
-        "vector":{
-            "values": vector_values,
-            "top": int(os.environ["RETRIEVED_NUMBER_OF_CHUNKS"])
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"]
         }
-    }
 
-    score_threshold = os.environ.get("LEARN_KNOWLEDGE_INDEX_SCORE_THRESHOLD")
-    if score_threshold:
-        learn_knowledge_index_url = learn_knowledge_index_url + "?scoreThreshold=" + score_threshold
+        filter = "depotName eq 'Azure.azure-cli-docs'"
+        if filter_command:
+            filter = f"({filter}) and (title eq '{filter_command}')"
 
-    result = requests.post(learn_knowledge_index_url, json=payload, headers=headers)
-    if result.status_code != 200:
-        logging.error('Status:{} {} ErrorMessage:{}'.format(result.status_code, result.reason, result.text))
+        payload = {
+            "filter": filter,
+            "vector":{
+                "values": vector_values,
+                "top": int(os.environ["RETRIEVED_NUMBER_OF_CHUNKS"])
+            }
+        }
+
+        score_threshold = os.environ.get("LEARN_KNOWLEDGE_INDEX_SCORE_THRESHOLD")
+        if score_threshold:
+            learn_knowledge_index_url = learn_knowledge_index_url + "?scoreThreshold=" + score_threshold
+
+        async with httpx.AsyncClient() as client:
+            result = await client.post(learn_knowledge_index_url, json=payload, headers=headers)
+            result.raise_for_status()
+    except httpx.RequestError as e:
+        logging.error('Error while retrieving chunks from learn knowledge index service: %s', e)
         return []
 
     return convert_chunks_to_json(result.json())
 
 
 async def retrieve_chunks_for_atomic_task(task_info):
-    vector_values = _embedding_text_to_vector(task_info)
+    vector_values = await _embedding_text_to_vector(task_info)
 
     is_command = task_info.startswith("az ")
     if is_command:
         command_info, parameters_info = parse_command_info(task_info)
-        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
+        chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
         # If the split subtask is a correct command, then accurately search for chunks related to this command
         if chunk_items:
             return merge_chunks_by_command(chunk_items)[0]
 
         else:
             # If it is a command that cannot be accurately matched, it indicates that this command is fabricated or expired. Then, use vector query for similarity search
-            chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+            chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
             return merge_chunks_by_command(chunk_items)[0]
 
-
-
     # If it is a description of a subtask, use vector query for similarity search
-    chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+    chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
     return merge_chunks_by_command(chunk_items)[0]
 
 
