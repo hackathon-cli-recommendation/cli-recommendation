@@ -44,11 +44,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         result = []
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
             result = knowledge_search(question, top_num)
-            if len(result) > 0 and not pass_verification(question, result):
-                logger.info(f"Knowledge quality is too low, question: {question}, score: {result[0]['score']}")
+            if len(result) == 0 or not pass_verification(question, result):
                 result = []
-            elif len(result) == 0:
-                logger.info("No knowledge found")
 
             return func.HttpResponse(generate_response(result, 200))
 
