@@ -189,7 +189,7 @@ def filter_chunks(chunks_list, command):
 def filter_chunk_parameters(chunk, command):
     n_chunk = chunk.copy()
     n_chunk['optional parameters'] = []
-    for chunk_param in chunk['optional parameters']:
+    for chunk_param in chunk.get('optional parameters', []):
         if calc_param_similarity_score(chunk_param, command) >= float(os.environ["KEYWORD_SIMILARITY_SCORE"]):
             n_chunk['optional parameters'].append(chunk_param)
     return n_chunk

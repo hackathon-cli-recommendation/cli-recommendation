@@ -56,7 +56,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
-            question = _add_context_to_question(question, task_list, usage_context)
+            if task_list and usage_context:
+                question = _add_context_to_question(question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
             gpt_result = gpt_generate(system_msg, question, history)
@@ -82,6 +83,7 @@ async def _retrieve_context_from_learn_knowledge_index(question):
         raw_task_list = _build_scenario_response(generate_results)
     except Exception as e:
         logger.error(f"Error while parsing the generate results: {generate_results}, {e}")
+        return None, None
 
     context_tasks = [asyncio.create_task(_build_task_context(raw_task)) for raw_task in raw_task_list]
 
