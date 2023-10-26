@@ -8,8 +8,8 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException, GPTInvalidResultException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunk_for_atomic_task, filter_chunks, \
-    merge_chunks_by_command
+from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task, filter_chunks, \
+    merge_chunks_by_command, retrieve_chunk_for_command, trim_command_and_chunk_with_invalid_params
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
 from common.auth import verify_token
 from json import JSONDecodeError
@@ -83,28 +83,43 @@ async def _retrieve_context_from_learn_knowledge_index(question):
     except Exception as e:
         logger.error(f"Error while parsing the generate results: {generate_results}, {e}")
 
-    task_list = []
-    chunk_tasks = []
-    for raw_task in raw_task_list:
-        # use task command as task info when length of task info > 1, otherwise use task desc as task info
-        desc = raw_task.split("||")[0]
-        cmd = raw_task.split("||")[1] if len(raw_task.split("||")) > 1 else None
-        validate_result = validate_command_in_task(cmd) if cmd else None
-        if cmd and validate_result is None:
-            task_list.append(cmd)
-        else:
-            task_list.append(desc)
-            chunk_tasks.append(asyncio.create_task(retrieve_chunk_for_atomic_task(desc, cmd, validate_result.msg if validate_result else None)))
+    context_tasks = [asyncio.create_task(_build_task_context(raw_task)) for raw_task in raw_task_list]
 
-    chunks_list = []
-    if len(chunk_tasks) > 0:
-        chunks_list = await asyncio.gather(*chunk_tasks)
-        chunks_list = [chunk for chunk in chunks_list if chunk is not None]
+    context_infos = await asyncio.gather(*context_tasks)
+    task_list = [context_info[0] for context_info in context_infos]
+    chunk_list = [chunk for context_info in context_infos for chunk in context_info[1]]
 
-    chunks_list = merge_chunks_by_command(chunks_list)
+    chunk_list = merge_chunks_by_command(chunk_list)
     # TODO The logic of filtering, ranking, and aggregating chunks
 
-    return raw_task_list, chunks_list
+    return task_list, chunk_list
+
+
+async def _build_task_context(raw_task):
+    desc = raw_task.split("||")[0]
+    if len(raw_task.split("||")) > 1:
+        cmd = raw_task.split("||")[1]
+        validate_result = validate_command_in_task(cmd)
+        if validate_result is None:
+            task = cmd
+            chunks = []
+        elif 'Unknown Command' in validate_result.msg or 'not an Azure CLI command' in validate_result.msg:
+            task = desc
+            chunks = await retrieve_chunks_for_atomic_task(desc)
+            chunks = filter_chunks(chunks, cmd)
+        else:
+            chunk = await retrieve_chunk_for_command(cmd)
+            if chunk:
+                task, chunk = trim_command_and_chunk_with_invalid_params(cmd, chunk)
+                chunks = [chunk]
+            else:
+                task = desc
+                chunks = await retrieve_chunks_for_atomic_task(desc)
+                chunks = filter_chunks(chunks, cmd)
+    else:
+        task = desc
+        chunks = await retrieve_chunks_for_atomic_task(desc)
+    return task, chunks
 
 
 def _add_context_to_question(question, task_list, usage_context):

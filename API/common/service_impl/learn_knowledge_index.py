@@ -5,6 +5,7 @@ import requests
 import json
 import logging
 import re
+from rapidfuzz import fuzz
 
 from common.util import determine_strings_are_similar, parse_command_info
 
@@ -69,29 +70,65 @@ def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_co
     return convert_chunks_to_json(result.json())
 
 
-async def retrieve_chunk_for_atomic_task(task: str, command: Optional[str] = None, failure_info: Optional[str] = None):
+def trim_command_and_chunk_with_invalid_params(command, chunk):
+
+    def trim_chunk_parameters(command, parameters, required):
+        n_chunk_parameters = []
+        n_cmd_parameters = []
+        for chunk_param in parameters:
+            param_option = _find_chunk_param_in_command(chunk_param, command)
+            if param_option:
+                n_cmd_parameters.append(param_option)
+            elif required or calc_param_similarity_score(chunk_param, command) >= float(os.environ["KEYWORD_SIMILARITY_SCORE"]):
+                n_chunk_parameters.append(chunk_param)
+        return n_cmd_parameters, n_chunk_parameters
+
+    n_chunk = chunk.copy()
+    cmd_sig, _ = parse_command_info(command)
+    cmd_p_required, n_chunk['required parameters'] = trim_chunk_parameters(command, chunk.get('required parameters', []), True)
+    cmd_p_optional, n_chunk['optional parameters'] = trim_chunk_parameters(command, chunk.get('optional parameters', []), False)
+    valid_cmd = cmd_sig + ' ' + ' '.join(cmd_p_required + cmd_p_optional)
+    return valid_cmd, n_chunk
+
+
+async def retrieve_chunk_for_command(command: str):
+    """
+    Retrieve chunks according to command signature
+    Args:
+        command: full command
+    Returns: a merged chunk that is related to the command
+    """
+    sig, _ = parse_command_info(command)
+    vector_values = _embedding_text_to_vector(command)
+
+    chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=sig)
+    if not chunk_items:
+        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+    chunks = merge_chunks_by_command(chunk_items)
+    return chunks[0] if chunks else None
+
+
+async def retrieve_chunks_for_atomic_task(task: str, command: Optional[str] = None):
     """
     Retrieve chunks according to task info
     Args:
         task: task description
         command: a possible incorrect command produced by GPT
-        failure_info: the reason for incorrect command
     Returns: List of chunks that are related to the task
     """
     vector_values = _embedding_text_to_vector(task)
 
-    if command and failure_info:
-        if 'Unknown Command' in failure_info or 'not an Azure CLI command' in failure_info:
+    if command:
+        command_sig = command.split(' -', 1)[0].strip()
+        chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_sig)
+        if not chunk_items:
             chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
-        else:
-            command_sig = command.split(' -', 1)[0].strip()
-            chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_sig)
-            chunk_items = filter_chunks(chunk_items, command)
+        chunk_items = filter_chunks(chunk_items, command)
     else:
         chunk_items = _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
 
     chunks = merge_chunks_by_command(chunk_items)
-    return chunks[0] if chunks else None
+    return chunks[:3]
 
 
 def convert_chunks_to_json(chunks_list):
@@ -151,7 +188,7 @@ def filter_chunk_parameters(chunk, command):
     n_chunk = chunk.copy()
     n_chunk['optional parameters'] = []
     for chunk_param in chunk['optional parameters']:
-        if is_param_related_to_command(chunk_param, command):
+        if calc_param_similarity_score(chunk_param, command) >= float(os.environ["KEYWORD_SIMILARITY_SCORE"]):
             n_chunk['optional parameters'].append(chunk_param)
     return n_chunk
 
@@ -174,12 +211,28 @@ def merge_chunks_by_command(chunks_list):
             for param in new_required_parameters:
                 if param not in existing_required_parameters:
                     existing_required_parameters.append(param)
+            
+            existing_chunk['score'] = max(existing_chunk['score'], chunk['score'])
         else:
-            chunk.pop('score', None)
             summary_dict[command] = chunk
 
     merged_chunks = list(summary_dict.values())
     return merged_chunks
+
+
+def _find_chunk_param_in_command(chunk_param, command):
+    for chunk_param_option in chunk_param['name'].split():
+        if chunk_param_option in command:
+            return chunk_param_option
+    return None
+
+
+def calc_param_similarity_score(chunk_param, command):
+    for cmd_param in [p for p in command.split() if p.startswith('-')]:
+        for chunk_param_option in chunk_param['name'].split():
+            score = fuzz.token_sort_ratio(chunk_param_option, cmd_param) / 100
+            chunk_param['score'] = max(score, chunk_param.get('score', 0))
+    return chunk_param.get('score', 0)
 
 
 def is_param_related_to_command(chunk_param, command):
