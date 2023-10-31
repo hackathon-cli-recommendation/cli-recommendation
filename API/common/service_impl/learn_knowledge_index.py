@@ -189,9 +189,7 @@ def filter_chunks(chunks_list, command):
     if filtered_chunks:
         return filtered_chunks
 
-    for chunk in chunks_list:
-        filtered_chunks.append(filter_chunk_parameters(chunk, command))
-    return filtered_chunks
+    return []
 
 
 def filter_chunk_parameters(chunk, command):
