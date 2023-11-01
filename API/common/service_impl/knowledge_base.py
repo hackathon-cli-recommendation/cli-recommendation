@@ -4,14 +4,12 @@ import os
 from enum import Enum
 from typing import List, Optional
 
-import openai
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
-from common.exception import CopilotException, GPTTimeOutException, GPTInvalidResultException, GPTInvalidBoolException
+from common.exception import GPTInvalidBoolException
 from common.util import ScenarioSourceType
-from common.service_impl.chatgpt import initialize_chatgpt_service_params, gpt_generate
-from openai.error import OpenAIError, Timeout, TryAgain
+from common.service_impl.chatgpt import gpt_generate
 
 
 class SearchScope(int, Enum):
@@ -165,12 +163,11 @@ def pass_verification(question, result):
     else:
         answer = result[0]['description']
         user_msg = f"question: {question}\ndescription: {answer}"
-        default_msg = r"""[{"role":"system","content":"Give you a question and a description, please refer to the following rules to determine if the content in the question is completely consistent with the description:\n1. Please determine whether the content in the question is semantically consistent with the description. If inconsistent, output False directly and do not need to continue with subsequent steps.\n2. Analyze the resources and operations on resources included in the question and description separately, and clarify what operations are used on what resources.\n3. Confirm whether the resources, operations, and corresponding relationships between operations and resources included in the question are completely consistent with the description. If they are the same or very close, output True, otherwise output False."},{"role":"user","content":"question: How to create a VM snapshot from VM image.\ndescription: Create a VM image from VM. Tutorial to create a VM image from an existing VM."},{"role":"assistant","content":"False"},{"role":"user","content":"question: I want to create a VM snapshot from VM image, could you give some suggestion?\ndescription: Create a VM snapshot from VM image. Tutorial to create a VM snapshot from an existing VM image"},{"role":"assistant","content":"True"}]"""
-        check_similarity_msg = json.loads(os.environ.get(
-            "OPENAI_CHECK_KNOWLEDGE_SEARCH_SIMILARITY_MSG", default=default_msg))
-        content = gpt_generate(check_similarity_msg, question)
+        default_msg = r"""[{"role":"system","content":"Give you a question and a description, please refer to the following rules to determine if the content in the question is completely consistent with the description:\n1. Please determine whether the content in the question is semantically consistent with the description. If inconsistent, output False directly and do not need to continue with subsequent steps.\n2. Analyze the resources and operations on resources included in the question and description separately, and clarify what operations are used on what resources.\n3. Confirm whether the resources, operations, and corresponding relationships between operations and resources included in the question are completely consistent with the description. If they are the same or very close, output True, otherwise output False."},{"role":"user","content":"question: How to create a VM snapshot from VM image.\ndescription: Tutorial to create a VM image from an existing VM."},{"role":"assistant","content":"False"},{"role":"user","content":"question: I want to create a VM snapshot from VM image, could you give some suggestion?\ndescription: Tutorial to create a VM snapshot from an existing VM image."},{"role":"assistant","content":"True"}]"""
+        check_similarity_msg = os.environ.get("OPENAI_CHECK_KNOWLEDGE_SEARCH_SIMILARITY_MSG", default=default_msg)
+        content = gpt_generate(check_similarity_msg, user_msg, history_msg=[])
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
-            logger.error(f"Not a bool value error: {content}")
+            logging.error(f"Not a bool value error: {content}")
             raise GPTInvalidBoolException
         return True if content == 'true' else False
