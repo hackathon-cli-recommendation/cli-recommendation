@@ -56,8 +56,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
-            if task_list and usage_context:
-                question = _add_context_to_question(question, task_list, usage_context)
+            question = _add_context_to_question(question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
             gpt_result = gpt_generate(system_msg, question, history)
