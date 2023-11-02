@@ -7,3 +7,4 @@ cryptography
 rapidfuzz
 msal
 httpx
+tiktoken

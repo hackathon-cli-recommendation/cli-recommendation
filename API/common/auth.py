@@ -68,10 +68,21 @@ def verify_token(func):
 
 
 def _get_auth_token(scope):
-    app = msal.ConfidentialClientApplication(client_id=os.environ["CLIENT_ID"], authority=os.environ["AUTHORITY_URL"], 
-                                             client_credential=os.environ["CLIENT_SECRET"])
-    result = app.acquire_token_for_client(scopes=scope)
-    return result['access_token']
+    client_id = os.environ.get("CLIENT_ID")
+    authority = os.environ.get("AUTHORITY_URL")
+    client_credential = os.environ.get("CLIENT_SECRET")
+    
+    if client_id is None or authority is None or client_credential is None:
+        logger.error("Missing required environment variables to get auth token!")
+        return None
+
+    app = msal.ConfidentialClientApplication(client_id, authority, client_credential)
+    try:
+        result = app.acquire_token_for_client(scopes=scope)
+        return result['access_token']
+    except Exception as e:
+        logger.error("Failed to get auth token: %s", e)
+        return None
 
 
 def get_auth_token_for_learn_knowlegde_index():
