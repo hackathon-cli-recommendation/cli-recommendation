@@ -8,7 +8,7 @@ import azure.functions as func
 from common.exception import ParameterException, CopilotException, GPTInvalidResultException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task, filter_chunks, \
+from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task, filter_chunks_by_keyword_similarity, \
     merge_chunks_by_command, retrieve_chunk_for_command, trim_command_and_chunk_with_invalid_params
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
 from common.auth import verify_token
@@ -118,7 +118,7 @@ async def _build_task_context(raw_task):
             # retrieve context chunks according to the description
             task = desc
             chunks = await retrieve_chunks_for_atomic_task(desc)
-            chunks = filter_chunks(chunks, cmd)
+            chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
         else:
             # If the GPT-provided command has a correct signature but incorrect parameters,
             # keep all correct parameters in guide step and suggest the possible correct parameters in the context chunk
@@ -127,9 +127,11 @@ async def _build_task_context(raw_task):
                 task, chunk = trim_command_and_chunk_with_invalid_params(cmd, chunk)
                 chunks = [chunk]
             else:
+                # The case is rare. If the GPT-provided command is not in the learn knowledge index,
+                # retrieve context chunks according to the description
                 task = desc
                 chunks = await retrieve_chunks_for_atomic_task(desc)
-                chunks = filter_chunks(chunks, cmd)
+                chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
     else:
         task = desc
         chunks = await retrieve_chunks_for_atomic_task(desc)

@@ -165,7 +165,7 @@ def convert_chunks_to_json(chunks_list):
     return data_list
 
 
-def filter_chunks(chunks_list, command):
+def filter_chunks_by_keyword_similarity(chunks_list, command):
     """
     Keep only the chunks and their associated parameters that are relevant to the current command, and discard the rest.
     Args:

@@ -1,6 +1,6 @@
 import unittest
 
-from common.service_impl.learn_knowledge_index import filter_chunks
+from common.service_impl.learn_knowledge_index import filter_chunks_by_keyword_similarity
 
 
 class TestChunkFilter(unittest.TestCase):
@@ -410,14 +410,14 @@ class TestChunkFilter(unittest.TestCase):
 
     def test_chunk_filter(self):
         raw_command = "az vm create --name --resource-group --image --generate-ssh-keys --license"
-        result = filter_chunks(self.chunks_list, raw_command)
+        result = filter_chunks_by_keyword_similarity(self.chunks_list, raw_command)
         params = self._get_all_params_from_chunks(result, 'az vm create')
         self.assertIn("--generate-ssh-keys", params)
         self.assertIn("--license-type", params)
 
     def test_chunk_filter_incorrect_sig(self):
         raw_command = "az create vm --name --resource-group --image --generate-ssh-keys --license"
-        result = filter_chunks(self.chunks_list, raw_command)
+        result = filter_chunks_by_keyword_similarity(self.chunks_list, raw_command)
         params = self._get_all_params_from_chunks(result, 'az vm create')
         self.assertIn("--generate-ssh-keys", params)
         self.assertIn("--license-type", params)
