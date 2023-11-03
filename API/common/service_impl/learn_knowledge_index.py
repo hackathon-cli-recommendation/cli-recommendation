@@ -103,7 +103,7 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
 
 async def retrieve_chunk_for_command(command: str):
     """
-    Retrieve chunks according to command signature
+    Retrieve chunk according to command signature
     Args:
         command: full command
     Returns: a merged chunk that is related to the command
@@ -112,8 +112,6 @@ async def retrieve_chunk_for_command(command: str):
     vector_values = await _embedding_text_to_vector(command)
 
     chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=sig)
-    if not chunk_items:
-        chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
     chunks = merge_chunks_by_command(chunk_items)
     return chunks[0] if chunks else None
 
@@ -249,6 +247,7 @@ def _find_top_n_similar_params(param, chunk_param_group, top_n=3):
     for chunk_param in chunk_param_group:
         chunk_param_copy = chunk_param.copy()
         scores = []
+        # There could be several option name for a parameter, e.g. `--resource-group` and `-g`
         for chunk_option in chunk_param['name'].split():
             score = fuzz.token_sort_ratio(chunk_option, param) / 100
             scores.append(score)

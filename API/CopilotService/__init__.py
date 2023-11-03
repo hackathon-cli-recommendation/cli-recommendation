@@ -86,9 +86,9 @@ async def _retrieve_context_from_learn_knowledge_index(question):
 
     context_tasks = [asyncio.create_task(_build_task_context(raw_task)) for raw_task in raw_task_list]
 
-    context_infos = await asyncio.gather(*context_tasks)
-    task_list = [context_info[0] for context_info in context_infos]
-    chunk_list = [chunk for context_info in context_infos for chunk in context_info[1]]
+    context_info_list = await asyncio.gather(*context_tasks)
+    task_list = [context_info[0] for context_info in context_info_list]
+    chunk_list = _join_chunks_in_context(context_info_list)
 
     chunk_list = merge_chunks_by_command(chunk_list)
     # TODO The logic of filtering, ranking, and aggregating chunks
@@ -165,3 +165,7 @@ def _build_scenario_response(content):
     except JSONDecodeError as e:
         logger.error(f"JSONDecodeError: {content}")
         raise GPTInvalidResultException from e
+
+
+def _join_chunks_in_context(context_info_list):
+    return [chunk for context_info in context_info_list for chunk in context_info[1]]
