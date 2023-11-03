@@ -87,11 +87,14 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
     cmd_sig, params = parse_command_info(command)
     cmd_params = []
     unmatched_params = []
+    # traverse all params in command, and pop the correct param from chunk
     for param in params:
         if _pop_param_in_chunk(param, chunk_copy):
             cmd_params.append(param)
         else:
             unmatched_params.append(param)
+    # all used required params are popped from chunk.
+    # So parameters in required parameters are all unused required parameters and should be included in context.
     chunk_copy['optional parameters'] = []
     for param in unmatched_params:
         similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
@@ -199,6 +202,7 @@ def filter_chunk_parameters(chunk, command):
     Returns: a new chunk with only related parameters
     """
     chunk_copy = chunk.copy()
+    # We should keep all the parameters that are required or related to the command.
     chunk_copy['optional parameters'] = []
     for chunk_param in chunk.get('optional parameters', []):
         if calc_param_similarity_score(chunk_param, command) >= keyword_similarity_score:
