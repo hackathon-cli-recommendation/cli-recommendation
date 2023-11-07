@@ -8,3 +8,6 @@ rapidfuzz
 msal
 httpx
 tiktoken
+opencensus
+opencensus-ext-azure
+opencensus-ext-logging

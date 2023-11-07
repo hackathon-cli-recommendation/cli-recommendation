@@ -1,9 +1,8 @@
-import os
-import httpx
 import logging
+import os
 import re
 
-from common.auth import get_auth_token_for_learn_knowlegde_index
+import httpx
 from common.util import determine_strings_are_similar, parse_command_info
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]

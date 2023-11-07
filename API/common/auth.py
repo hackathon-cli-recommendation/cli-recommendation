@@ -1,24 +1,23 @@
 
-import jwt
-import requests
-import json
 import base64
+import json
 import logging
-import msal
 import os
-
 from functools import wraps
-from jwt.algorithms import RSAAlgorithm
-from azure.functions import HttpRequest, HttpResponse
 
+import jwt
+import msal
+import requests
+from azure.functions import HttpResponse
+from jwt.algorithms import RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
 def verify_token(func):
     @wraps(func)
-    def wrapper(req: HttpRequest) -> HttpResponse:
-        token = req.headers.get('Authorization')
+    def wrapper(*args, **kwargs) -> HttpResponse:
+        token = kwargs['req'].headers.get('Authorization')
         if not token:
             return HttpResponse("Authorization token is missing", status_code=401)
         token = token.replace('Bearer ', '')
@@ -63,7 +62,7 @@ def verify_token(func):
         except jwt.InvalidTokenError as e:
             logger.error(f"Token validation failed: {e}")
             return HttpResponse(f"Token validation failed: {e}", status_code=401)
-        return func(req)
+        return func(*args, **kwargs)
     return wrapper
 
 

@@ -1,16 +1,16 @@
+import json
+import logging
 import os
 from typing import Any, Dict, List
-import json
+
 import openai
-from openai.error import TryAgain, Timeout, OpenAIError, RateLimitError
 import tiktoken
-import logging
-
+from common.context import log_dependency_call
 from common.exception import CopilotException, GPTTimeOutException
-from common.util import timing_decorator
-
+from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 
 logger = logging.getLogger(__name__)
+
 
 
 # initialize_openai_service
@@ -24,28 +24,46 @@ openai.api_version = os.environ["OPENAI_API_VERSION"]
 openai.api_base = os.environ["OPENAI_API_URL"]
 
 
-@timing_decorator
-def gpt_generate(system_msg: str, user_msg: str, history_msg: List[Dict[str, str]], **kwargs) -> Dict[str, Any]:
+@log_dependency_call("gpt generate")
+def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, Any]:
     # the param dict of the chatgpt service
     chatgpt_service_params = initialize_chatgpt_service_params(system_msg)
     all_user_msg = []
+    estimated_history_tokens = 0
     if history_msg:
-        history_tokens = num_tokens_from_messages(history_msg)
+        estimated_history_tokens = num_tokens_from_messages(history_msg)
         chatgpt_service_params["messages"].extend(history_msg)
         all_user_msg = [msg["content"]
                         for msg in history_msg if msg["role"] == "user"]
     all_user_msg.append(user_msg)
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
-    prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
-    gpt_task_name = kwargs.get('gpt_task_name', 'undefined')
+    
+    # get the estimated number of tokens
+    estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
+    gpt_task_name = context.custom_context.gpt_task_name
+    del context.custom_context.gpt_task_name
+    estimated_question_tokens = context.custom_context.estimated_question_tokens
+    del context.custom_context.estimated_question_tokens
+    estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
+    if estimated_task_list_tokens:
+        del context.custom_context.estimated_task_list_tokens
+    task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
+    if task_list_lens:
+        del context.custom_context.task_list_lens
+    estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
+    if estimated_usage_context_tokens:
+        del context.custom_context.estimated_usage_context_tokens
+
+    # logging GPT call cost
     message = f"The estimated cost of {gpt_task_name} GPT call is as follows: "
-    message += f"question tokens = {kwargs['question_tokens']}, " if 'question_tokens' in kwargs else ""
-    message += f"task list tokens = {kwargs['task_list_tokens']}, task lens = {kwargs['task_list_lens']}, " if 'task_list_tokens' in kwargs else ""
-    message += f"usage tokens = {kwargs['usage_tokens']}, " if 'usage_tokens' in kwargs else ""
-    message += f"history tokens = {history_tokens}, " if 'history_tokens' in kwargs else ""
-    message += f"propmpt tokens = {prompt_tokens}."
+    message += f"question tokens = {estimated_question_tokens}, "
+    message += f"task list tokens = {estimated_task_list_tokens}, task lens = {task_list_lens}, " if estimated_task_list_tokens else ""
+    message += f"usage context tokens = {estimated_usage_context_tokens}, " if estimated_usage_context_tokens else ""
+    message += f"history tokens = {estimated_history_tokens}, "
+    message += f"propmpt tokens = {estimated_prompt_tokens}."
     logging.info(f"{message}")
+
     try:
         response = openai.ChatCompletion.create(**chatgpt_service_params)
         logging.info(f"The actual cost of {gpt_task_name} GPT call is as follows: completion tokens = {response['usage']['completion_tokens']}, propmpt tokens = {response['usage']['prompt_tokens']}, total tokens = {response['usage']['total_tokens']}.")
@@ -55,9 +73,27 @@ def gpt_generate(system_msg: str, user_msg: str, history_msg: List[Dict[str, str
         raise CopilotException('The OpenAI API rate limit is exceeded.') from e
     except OpenAIError as e:
         raise CopilotException('There is some error from the OpenAI.') from e
-    content = response["choices"][0]["message"]["content"]
+    chatCompletion = response.choices[0].message.content
+    response.usage['model'] = response.model
+    response = {
+        "content": chatCompletion,
+        "usage": response.usage,
+        "object": response.object,
+    }
 
-    return content
+    # add usage to response
+    response['usage']['gpt_task_name'] = gpt_task_name
+    response['usage']['estimated_question_tokens'] = estimated_question_tokens
+    if estimated_task_list_tokens:
+        response['usage']['estimated_task_list_tokens'] = estimated_task_list_tokens
+    if task_list_lens:
+        response['usage']['task_list_lens'] = task_list_lens
+    if estimated_usage_context_tokens:
+        response['usage']['estimated_usage_context_tokens'] = estimated_usage_context_tokens
+    response['usage']['estimated_history_tokens'] = estimated_history_tokens
+    response['usage']['estimated_prompt_tokens'] = estimated_prompt_tokens
+
+    return response
 
 
 def initialize_chatgpt_service_params(prompt_msg=None, chatgpt_service_params=None):
