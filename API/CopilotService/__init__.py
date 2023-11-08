@@ -45,7 +45,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         result = []
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
             result = knowledge_search(question, top_num)
-            if len(result) == 0 or not pass_verification(question, result):
+            if len(result) == 0 or not pass_verification(context, question, result):
                 result = []
 
             return func.HttpResponse(generate_response(result, 200))
@@ -115,9 +115,7 @@ def _add_context_to_queston(context, question, task_list, usage_context):
     return question
 
 
-def _build_scenario_response(response):
-    content = response['content']
-
+def _build_scenario_response(content):
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
         logger.info(f"OpenAI Apology Output: {content}")
         return None

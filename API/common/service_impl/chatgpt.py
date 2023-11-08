@@ -56,8 +56,7 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     response.usage['model'] = response.model
     response = {
         "content": chatCompletion,
-        "usage": response.usage,
-        "object": response.object,
+        "usage": response.usage
     }
 
     response = _add_estimated_usage(context, response)

@@ -166,6 +166,7 @@ def log_dependency_call(callName):
                         dependencyCall.usage = response['usage']
                         for key, value in response['usage'].items():
                             span.add_attribute(f"{key}", value)
+                        response = response['content']
             except Exception as e:
                 tracebackStr = traceback.format_exc()
                 logging.error(tracebackStr)
@@ -196,6 +197,7 @@ def log_dependency_call_async(callName):
                         dependencyCall.usage = response['usage']
                         for key, value in response['usage'].items():
                             span.add_attribute(f"{key}", value)
+                        response = response['content']
             except Exception as e:
                 tracebackStr = traceback.format_exc()
                 logging.error(tracebackStr)
