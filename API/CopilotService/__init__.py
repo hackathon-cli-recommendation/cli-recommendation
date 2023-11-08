@@ -55,7 +55,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             question = _add_context_to_queston(context, question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
-            context.custom_context.tmp_context.gpt_task_name = 'GENERATE_SCENARIO'
+            context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
             gpt_result = gpt_generate(context, system_msg, question, history)
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
@@ -63,7 +63,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             result = knowledge_search(question, top_num)
 
             if len(result) == 0 or not pass_verification(question, result):
-                context.custom_context.tmp_context.gpt_task_name = 'GENERATE_SCENARIO'
+                context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
                 gpt_result = gpt_generate(context, system_msg, question, history)
                 result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
@@ -75,8 +75,8 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
 async def _retrieve_context_from_learn_knowledge_index(context, question):
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
-    context.custom_context.tmp_context.gpt_task_name = 'SPLIT_TASK'
-    context.custom_context.tmp_context.estimated_question_tokens = num_tokens_from_message(question)
+    context.custom_context.gpt_task_name = 'SPLIT_TASK'
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
     generate_results = gpt_generate(context, system_msg, question, history_msg=[])
     try:
         task_list = _build_scenario_response(generate_results)
@@ -102,10 +102,10 @@ async def _retrieve_context_from_learn_knowledge_index(context, question):
 
 
 def _add_context_to_queston(context, question, task_list, usage_context):
-    context.custom_context.tmp_context.estimated_question_tokens = num_tokens_from_message(question)
-    context.custom_context.tmp_context.task_list_lens = len(task_list)
-    context.custom_context.tmp_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
-    context.custom_context.tmp_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
+    context.custom_context.task_list_lens = len(task_list)
+    context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
+    context.custom_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
     if task_list:
         guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
         question = question + guiding_steps_separation + str(task_list) + '\n'

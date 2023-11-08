@@ -28,8 +28,8 @@ def telemetry(func):
                 response = func(*args, **kwargs)
             context.custom_context.originalCall.end()
         except Exception as e:
-            logging.error(e)
             tracebackStr = traceback.format_exc()
+            logging.error(tracebackStr)
             context.custom_context.originalCall.end(exception=tracebackStr)
             response = func.HttpResponse(e.msg, status_code=500)
         finally:

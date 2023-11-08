@@ -39,8 +39,8 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
     
-    context.custom_context.tmp_context.estimated_history_tokens = estimated_history_tokens
-    context.custom_context.tmp_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
+    context.custom_context.estimated_history_tokens = estimated_history_tokens
+    context.custom_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
     _logging_gpt_call_cost(context)
 
     try:
@@ -65,13 +65,13 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
 
 
 def _logging_gpt_call_cost(context):
-    gpt_task_name = context.custom_context.tmp_context.gpt_task_name
-    estimated_question_tokens = context.custom_context.tmp_context.estimated_question_tokens
+    gpt_task_name = context.custom_context.gpt_task_name
+    estimated_question_tokens = context.custom_context.estimated_question_tokens
     estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
     task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
     estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
-    estimated_history_tokens = context.custom_context.tmp_context.estimated_history_tokens
-    estimated_prompt_tokens = context.custom_context.tmp_context.estimated_prompt_tokens
+    estimated_history_tokens = context.custom_context.estimated_history_tokens
+    estimated_prompt_tokens = context.custom_context.estimated_prompt_tokens
 
     # logging GPT call cost
     message = f"The estimated cost of {gpt_task_name} GPT call is as follows: "
@@ -84,29 +84,35 @@ def _logging_gpt_call_cost(context):
 
 
 def _add_estimated_usage(context, response):
-    gpt_task_name = context.custom_context.tmp_context.gpt_task_name
-    estimated_question_tokens = context.custom_context.tmp_context.estimated_question_tokens
+    gpt_task_name = context.custom_context.gpt_task_name
+    estimated_question_tokens = context.custom_context.estimated_question_tokens
     estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
     task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
     estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
-    estimated_history_tokens = context.custom_context.tmp_context.estimated_history_tokens
-    estimated_prompt_tokens = context.custom_context.tmp_context.estimated_prompt_tokens
+    estimated_history_tokens = context.custom_context.estimated_history_tokens
+    estimated_prompt_tokens = context.custom_context.estimated_prompt_tokens
 
     # add usage to response
     response['usage']['gpt_task_name'] = gpt_task_name
     response['usage']['estimated_question_tokens'] = estimated_question_tokens
     if estimated_task_list_tokens:
         response['usage']['estimated_task_list_tokens'] = estimated_task_list_tokens
+        del context.custom_context.estimated_task_list_tokens
     if task_list_lens:
         response['usage']['task_list_lens'] = task_list_lens
+        del context.custom_context.task_list_lens
     if estimated_usage_context_tokens:
         response['usage']['estimated_usage_context_tokens'] = estimated_usage_context_tokens
+        del context.custom_context.estimated_usage_context_tokens
     response['usage']['estimated_history_tokens'] = estimated_history_tokens
     response['usage']['estimated_prompt_tokens'] = estimated_prompt_tokens
     
     # Since one http request contains multiple GPT requests, 
     # and the fields we count are different each time, they must be cleared to avoid being carried into another GPT request.
-    del context.custom_context.tmp_context
+    del context.custom_context.gpt_task_name
+    del context.custom_context.estimated_question_tokens
+    del context.custom_context.estimated_history_tokens
+    del context.custom_context.estimated_prompt_tokens
 
     return response
 
