@@ -39,30 +39,9 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
     
-    # get the estimated number of tokens
-    estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
-    gpt_task_name = context.custom_context.gpt_task_name
-    del context.custom_context.gpt_task_name
-    estimated_question_tokens = context.custom_context.estimated_question_tokens
-    del context.custom_context.estimated_question_tokens
-    estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
-    if estimated_task_list_tokens:
-        del context.custom_context.estimated_task_list_tokens
-    task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
-    if task_list_lens:
-        del context.custom_context.task_list_lens
-    estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
-    if estimated_usage_context_tokens:
-        del context.custom_context.estimated_usage_context_tokens
-
-    # logging GPT call cost
-    message = f"The estimated cost of {gpt_task_name} GPT call is as follows: "
-    message += f"question tokens = {estimated_question_tokens}, "
-    message += f"task list tokens = {estimated_task_list_tokens}, task lens = {task_list_lens}, " if estimated_task_list_tokens else ""
-    message += f"usage context tokens = {estimated_usage_context_tokens}, " if estimated_usage_context_tokens else ""
-    message += f"history tokens = {estimated_history_tokens}, "
-    message += f"propmpt tokens = {estimated_prompt_tokens}."
-    logging.info(f"{message}")
+    context.custom_context.tmp_context.estimated_history_tokens = estimated_history_tokens
+    context.custom_context.tmp_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
+    _logging_gpt_call_cost(context)
 
     try:
         response = openai.ChatCompletion.create(**chatgpt_service_params)
@@ -81,6 +60,38 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
         "object": response.object,
     }
 
+    response = _add_estimated_usage(context, response)
+    return response
+
+
+def _logging_gpt_call_cost(context):
+    gpt_task_name = context.custom_context.tmp_context.gpt_task_name
+    estimated_question_tokens = context.custom_context.tmp_context.estimated_question_tokens
+    estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
+    task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
+    estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
+    estimated_history_tokens = context.custom_context.tmp_context.estimated_history_tokens
+    estimated_prompt_tokens = context.custom_context.tmp_context.estimated_prompt_tokens
+
+    # logging GPT call cost
+    message = f"The estimated cost of {gpt_task_name} GPT call is as follows: "
+    message += f"question tokens = {estimated_question_tokens}, "
+    message += f"task list tokens = {estimated_task_list_tokens}, task lens = {task_list_lens}, " if estimated_task_list_tokens else ""
+    message += f"usage context tokens = {estimated_usage_context_tokens}, " if estimated_usage_context_tokens else ""
+    message += f"history tokens = {estimated_history_tokens}, "
+    message += f"propmpt tokens = {estimated_prompt_tokens}."
+    logging.info(f"{message}")
+
+
+def _add_estimated_usage(context, response):
+    gpt_task_name = context.custom_context.tmp_context.gpt_task_name
+    estimated_question_tokens = context.custom_context.tmp_context.estimated_question_tokens
+    estimated_task_list_tokens = getattr(context.custom_context, 'estimated_task_list_tokens', None)
+    task_list_lens = getattr(context.custom_context, 'task_list_lens', None)
+    estimated_usage_context_tokens = getattr(context.custom_context, 'estimated_usage_context_tokens', None)
+    estimated_history_tokens = context.custom_context.tmp_context.estimated_history_tokens
+    estimated_prompt_tokens = context.custom_context.tmp_context.estimated_prompt_tokens
+
     # add usage to response
     response['usage']['gpt_task_name'] = gpt_task_name
     response['usage']['estimated_question_tokens'] = estimated_question_tokens
@@ -92,6 +103,10 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
         response['usage']['estimated_usage_context_tokens'] = estimated_usage_context_tokens
     response['usage']['estimated_history_tokens'] = estimated_history_tokens
     response['usage']['estimated_prompt_tokens'] = estimated_prompt_tokens
+    
+    # Since one http request contains multiple GPT requests, 
+    # and the fields we count are different each time, they must be cleared to avoid being carried into another GPT request.
+    del context.custom_context.tmp_context
 
     return response
 
