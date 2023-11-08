@@ -45,7 +45,7 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
 
     try:
         response = openai.ChatCompletion.create(**chatgpt_service_params)
-        logging.info(f"The actual cost of {gpt_task_name} GPT call is as follows: completion tokens = {response['usage']['completion_tokens']}, propmpt tokens = {response['usage']['prompt_tokens']}, total tokens = {response['usage']['total_tokens']}.")
+        logging.info(f"The actual cost of {context.custom_context.gpt_task_name} GPT call is as follows: completion tokens = {response['usage']['completion_tokens']}, propmpt tokens = {response['usage']['prompt_tokens']}, total tokens = {response['usage']['total_tokens']}.")
     except (TryAgain, Timeout) as e:
         raise GPTTimeOutException() from e
     except RateLimitError as e:
