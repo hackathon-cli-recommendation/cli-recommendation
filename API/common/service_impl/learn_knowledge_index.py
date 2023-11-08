@@ -1,8 +1,8 @@
-import os
-import httpx
 import logging
+import os
 import re
 
+import httpx
 from common.util import determine_strings_are_similar, parse_command_info
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
@@ -34,14 +34,14 @@ async def _embedding_text_to_vector(text):
         return []
 
 
-async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):
+async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None, token=None):
     try:
         # learn knowledge index service endpoint URL  
         learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
 
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"]
+            'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"] if not token else token
         }
 
         filter = "depotName eq 'Azure.azure-cli-docs'"
@@ -70,13 +70,13 @@ async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, fil
     return convert_chunks_to_json(result.json())
 
 
-async def retrieve_chunks_for_atomic_task(task_info):
+async def retrieve_chunks_for_atomic_task(task_info, token=None):
     vector_values = await _embedding_text_to_vector(task_info)
 
     is_command = task_info.startswith("az ")
     if is_command:
         command_info, parameters_info = parse_command_info(task_info)
-        chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info)
+        chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=command_info, token=token)
         # If the split subtask is a correct command, then accurately search for chunks related to this command
         if chunk_items:
             return merge_chunks_by_command(chunk_items)[0]

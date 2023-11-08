@@ -1,18 +1,18 @@
+import asyncio
+import json
 import logging
 import os
 from enum import Enum
-import asyncio
-import json
-import azure.functions as func
-
-from common.exception import ParameterException, CopilotException, GPTInvalidResultException
-from common.service_impl.chatgpt import gpt_generate
-from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task
-from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
-from common.auth import verify_token
 from json import JSONDecodeError
 
+import azure.functions as func
+from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
+from common.exception import CopilotException, GPTInvalidResultException, ParameterException
+from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
+from common.service_impl.knowledge_base import knowledge_search, pass_verification
+from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task
+from common.telemetry import telemetry
+from common.util import generate_response, get_param, get_param_enum, get_param_int, get_param_str
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,9 @@ class ServiceType(str, Enum):
     GPT_GENERATION = 'GPTGeneration'
 
 
+@telemetry
 @verify_token
-def main(req: func.HttpRequest) -> func.HttpResponse:
+def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         question = get_param_str(req, 'question', required=True)
         history = get_param(req, 'history', default=[])
@@ -44,24 +45,26 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         result = []
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
             result = knowledge_search(question, top_num)
-            if len(result) == 0 or not pass_verification(question, result):
+            if len(result) == 0 or not pass_verification(context, question, result):
                 result = []
 
             return func.HttpResponse(generate_response(result, 200))
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
-            task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(question))
-            question = _add_context_to_queston(question, task_list, usage_context)
+            task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(context, question))
+            question = _add_context_to_queston(context, question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
-            gpt_result = gpt_generate(system_msg, question, history)
+            context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
+            gpt_result = gpt_generate(context, system_msg, question, history)
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
-    
+
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
 
             if len(result) == 0 or not pass_verification(question, result):
-                gpt_result = gpt_generate(system_msg, question, history)
+                context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
+                gpt_result = gpt_generate(context, system_msg, question, history)
                 result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
     except CopilotException as e:
@@ -70,20 +73,24 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(generate_response(result, 200))
 
 
-async def _retrieve_context_from_learn_knowledge_index(question):
+async def _retrieve_context_from_learn_knowledge_index(context, question):
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
-    generate_results = gpt_generate(system_msg, question, history_msg=[])
+    context.custom_context.gpt_task_name = 'SPLIT_TASK'
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
+    generate_results = gpt_generate(context, system_msg, question, history_msg=[])
     try:
         task_list = _build_scenario_response(generate_results)
     except Exception as e:
         logger.error(f"Error while parsing the generate results: {generate_results}, {e}")
+
+    token = get_auth_token_for_learn_knowlegde_index()
 
     splited_tasks = []
     for task_info in task_list:
         # use task command as task info when length of task info > 1, otherwise use task desc as task info
         task_info = task_info.split("||")
         task_info = task_info[1] if len(task_info) > 1 else task_info[0]
-        splited_tasks.append(asyncio.create_task(retrieve_chunks_for_atomic_task(task_info)))
+        splited_tasks.append(asyncio.create_task(retrieve_chunks_for_atomic_task(task_info, token)))
 
     chunks_list = []
     if len(splited_tasks) > 0:
@@ -94,7 +101,11 @@ async def _retrieve_context_from_learn_knowledge_index(question):
     return task_list, chunks_list
 
 
-def _add_context_to_queston(question, task_list, usage_context):
+def _add_context_to_queston(context, question, task_list, usage_context):
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
+    context.custom_context.task_list_lens = len(task_list)
+    context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
+    context.custom_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
     if task_list:
         guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
         question = question + guiding_steps_separation + str(task_list) + '\n'
@@ -105,7 +116,6 @@ def _add_context_to_queston(question, task_list, usage_context):
 
 
 def _build_scenario_response(content):
-
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
         logger.info(f"OpenAI Apology Output: {content}")
         return None

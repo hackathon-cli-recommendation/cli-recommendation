@@ -6,10 +6,9 @@ from typing import List, Optional
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-
 from common.exception import GPTInvalidBoolException
+from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
 from common.util import ScenarioSourceType
-from common.service_impl.chatgpt import gpt_generate
 
 
 class SearchScope(int, Enum):
@@ -157,7 +156,7 @@ def append_results(results, appended_results):
             results.append(result)
 
 
-def pass_verification(question, result):
+def pass_verification(context, question, result):
     if result[0]['score'] < float(os.environ.get('KNOWLEDGE_QUALITY_THRESHOLD', "1.0")):
         return False
     else:
@@ -165,7 +164,9 @@ def pass_verification(question, result):
         user_msg = f"question: {question}\ndescription: {answer}"
         default_msg = r"""[{"role":"system","content":"Give you a question and a description, please refer to the following rules to determine if the content in the question is completely consistent with the description:\n1. Please determine whether the content in the question is semantically consistent with the description. If inconsistent, output False directly and do not need to continue with subsequent steps.\n2. Analyze the resources and operations on resources included in the question and description separately, and clarify what operations are used on what resources.\n3. Confirm whether the resources, operations, and corresponding relationships between operations and resources included in the question are completely consistent with the description. If they are the same or very close, output True, otherwise output False."},{"role":"user","content":"question: How to create a VM snapshot from VM image.\ndescription: Tutorial to create a VM image from an existing VM."},{"role":"assistant","content":"False"},{"role":"user","content":"question: I want to create a VM snapshot from VM image, could you give some suggestion?\ndescription: Tutorial to create a VM snapshot from an existing VM image."},{"role":"assistant","content":"True"}]"""
         check_similarity_msg = os.environ.get("OPENAI_CHECK_KNOWLEDGE_SEARCH_SIMILARITY_MSG", default=default_msg)
-        content = gpt_generate(check_similarity_msg, user_msg, history_msg=[])
+        context.custom_context.gpt_task_name = 'CHECK_KNOWLEDGE_SEARCH_SIMILARITY'
+        context.custom_context.estimated_question_tokens = num_tokens_from_message(user_msg)
+        content = gpt_generate(context, check_similarity_msg, user_msg, history_msg=[])
         content = content.replace("\"", "").replace("'", "").lower()
         if content not in ['true', 'false']:
             logging.error(f"Not a bool value error: {content}")
