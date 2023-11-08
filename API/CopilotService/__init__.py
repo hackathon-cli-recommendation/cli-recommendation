@@ -3,6 +3,7 @@ import os
 from enum import Enum
 import azure.functions as func
 
+from common.correct import correct_scenario
 from common.exception import ParameterException, CopilotException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge import knowledge_search, pass_verification
