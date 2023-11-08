@@ -113,11 +113,15 @@ async def _build_task_context(raw_task):
             # If the GPT-provided command is valid, use it as a guide step.
             task = cmd
             chunks = []
-        elif 'Unknown Command' in validate_result.msg or 'not an Azure CLI command' in validate_result.msg:
+        elif 'not an Azure CLI command' in validate_result.msg:
+            # If GPT generates a non-CLI command, like `git clone`
+            task = desc
+            chunks = []
+        elif 'Unknown Command' in validate_result.msg:
             # If the GPT-provided command has an error in command signature,
             # retrieve context chunks according to the description
             task = desc
-            chunks = await retrieve_chunks_for_atomic_task(desc)
+            chunks = await retrieve_chunks_for_atomic_task(cmd)
             chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
         else:
             # If the GPT-provided command has a correct signature but incorrect parameters,
