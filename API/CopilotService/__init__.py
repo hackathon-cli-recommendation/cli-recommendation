@@ -132,7 +132,7 @@ async def _build_task_context(raw_task, token):
         else:
             # If the GPT-provided command has a correct signature but incorrect parameters,
             # keep all correct parameters in guide step and suggest the possible correct parameters in the context chunk
-            chunk = await retrieve_chunk_for_command(cmd)
+            chunk = await retrieve_chunk_for_command(cmd, token)
             if chunk:
                 task, chunk = trim_command_and_chunk_with_invalid_params(cmd, chunk)
                 chunks = [chunk]

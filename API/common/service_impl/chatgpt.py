@@ -12,7 +12,6 @@ from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 logger = logging.getLogger(__name__)
 
 
-
 # initialize_openai_service
 # the type of the OpenAI API service
 openai.api_type = "azure"
@@ -25,7 +24,7 @@ openai.api_base = os.environ["OPENAI_API_URL"]
 
 
 @log_dependency_call("gpt generate")
-def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict[str, str]]) -> str:
+def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict[str, str]]) -> Dict[str, Any]:
     # the param dict of the chatgpt service
     chatgpt_service_params = initialize_chatgpt_service_params(system_msg)
     all_user_msg = []
