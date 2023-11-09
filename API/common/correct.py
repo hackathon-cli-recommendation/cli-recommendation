@@ -114,6 +114,7 @@ class ReplaceArgAction(Action):
 
 
 class AddArgAction(Action):
+    # TODO: The action has problem when arg_k and arg_v is `*` in `MatchRule`
     def __init__(self, arg_k: str, arg_v: str):
         self.arg_k = arg_k
         self.arg_v = arg_v
@@ -155,6 +156,8 @@ class CorrectRuleSet(object):
         Args:
             raw: the raw RuleSet string, e.g.
                 "[{\"match_rule\": \"('*', '--image', 'UbuntuLTS')\", \"action\": \"ReplaceArg('~', 'Ubuntu2204')\"}]"
+                `*` in a `MatchRule` means match any text
+                `~` in a `ReplaceAction` means keep the original text
         Returns: the new constructed RuleSet
         """
         try:
