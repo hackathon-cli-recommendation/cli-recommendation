@@ -1,24 +1,23 @@
 
-import jwt
-import requests
-import json
 import base64
+import json
 import logging
-import msal
 import os
-
 from functools import wraps
-from jwt.algorithms import RSAAlgorithm
-from azure.functions import HttpRequest, HttpResponse
 
+import jwt
+import msal
+import requests
+from azure.functions import HttpResponse
+from jwt.algorithms import RSAAlgorithm
 
 logger = logging.getLogger(__name__)
 
 
 def verify_token(func):
     @wraps(func)
-    def wrapper(req: HttpRequest) -> HttpResponse:
-        token = req.headers.get('Authorization')
+    def wrapper(*args, **kwargs) -> HttpResponse:
+        token = kwargs['req'].headers.get('Authorization')
         if not token:
             return HttpResponse("Authorization token is missing", status_code=401)
         token = token.replace('Bearer ', '')
@@ -63,15 +62,26 @@ def verify_token(func):
         except jwt.InvalidTokenError as e:
             logger.error(f"Token validation failed: {e}")
             return HttpResponse(f"Token validation failed: {e}", status_code=401)
-        return func(req)
+        return func(*args, **kwargs)
     return wrapper
 
 
 def _get_auth_token(scope):
-    app = msal.ConfidentialClientApplication(client_id=os.environ["CLIENT_ID"], authority=os.environ["AUTHORITY_URL"], 
-                                             client_credential=os.environ["CLIENT_SECRET"])
-    result = app.acquire_token_for_client(scopes=scope)
-    return result['access_token']
+    client_id = os.environ.get("CLIENT_ID")
+    authority = os.environ.get("AUTHORITY_URL")
+    client_credential = os.environ.get("CLIENT_SECRET")
+    
+    if client_id is None or authority is None or client_credential is None:
+        logger.error("Missing required environment variables to get auth token!")
+        return None
+
+    app = msal.ConfidentialClientApplication(client_id, authority, client_credential)
+    try:
+        result = app.acquire_token_for_client(scopes=scope)
+        return result['access_token']
+    except Exception as e:
+        logger.error("Failed to get auth token: %s", e)
+        return None
 
 
 def get_auth_token_for_learn_knowlegde_index():

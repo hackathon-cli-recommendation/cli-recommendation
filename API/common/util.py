@@ -106,14 +106,3 @@ def parse_command_info(command_info):
 
     command_signature = ' '.join(command_part)
     return command_signature, arguments_part
-
-
-def timing_decorator(func):
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        logger.info(f"{func.__name__} operation time: {elapsed_time} seconds.")
-        return result
-    return wrapper

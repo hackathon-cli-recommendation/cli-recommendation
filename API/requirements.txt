@@ -8,3 +8,7 @@ rapidfuzz
 msal
 ./vendor/cli_validator-0.0.1-py3-none-any.whl
 httpx
+tiktoken
+opencensus
+opencensus-ext-azure
+opencensus-ext-logging

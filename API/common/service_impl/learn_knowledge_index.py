@@ -1,10 +1,10 @@
-import os
-import httpx
 from typing import Optional
 import logging
+import os
 import re
 from rapidfuzz import fuzz
 
+import httpx
 from common.util import determine_strings_are_similar, parse_command_info
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
@@ -38,14 +38,14 @@ async def _embedding_text_to_vector(text):
         return []
 
 
-async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None):
+async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=None, token=None):
     try:
         # learn knowledge index service endpoint URL
         learn_knowledge_index_url = os.environ["LEARN_KNOWLEDGE_INDEX_SERVICE_URL"]
 
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"]
+            'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"] if not token else token
         }
 
         filter = "depotName eq 'Azure.azure-cli-docs'"
@@ -104,7 +104,7 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
     return valid_cmd, chunk_copy
 
 
-async def retrieve_chunk_for_command(command: str):
+async def retrieve_chunk_for_command(command: str, token=None):
     """
     Retrieve chunk according to command signature
     Args:
@@ -114,12 +114,12 @@ async def retrieve_chunk_for_command(command: str):
     sig, _ = parse_command_info(command)
     vector_values = await _embedding_text_to_vector(command)
 
-    chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=sig)
+    chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, filter_command=sig, token=token)
     chunks = merge_chunks_by_command(chunk_items)
     return chunks[0] if chunks else None
 
 
-async def retrieve_chunks_for_atomic_task(task: str):
+async def retrieve_chunks_for_atomic_task(task: str, token=None):
     """
     Retrieve chunks according to task info
     Args:
@@ -128,7 +128,7 @@ async def retrieve_chunks_for_atomic_task(task: str):
     """
     vector_values = await _embedding_text_to_vector(task)
 
-    chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values)
+    chunk_items = await _retrieve_chunks_from_learn_knowledge_index_service(vector_values, token=token)
     chunks = merge_chunks_by_command(chunk_items)
     return chunks[:chunk_sieve_top_num]
 
