@@ -124,9 +124,10 @@ async def _build_task_context(raw_task, token):
             task = desc
             chunks = []
         elif 'Unknown Command' in validate_result.msg:
-            # If the GPT-provided command has an error in command signature,
-            # retrieve context chunks according to the description
-            task = desc
+            # If the GPT-provided command has an error in command signature, 
+            # retrieve context chunks according to the command signature
+            # because hallucination command signatures preserve the semantics of operations without attention issues,
+            # and there are always only subtle differences between the hallucination and correct command signatures.
             chunks = await retrieve_chunks_for_atomic_task(cmd, token)
             chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
         else:
