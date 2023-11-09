@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from common.correct import CorrectRuleSet, MatchRule, ReplaceSigAction, MatchResult
+from common.correct import CorrectRuleSet, MatchRule, ReplaceSigAction, MatchResult, ReplaceArgAction, AddArgAction
 
 
 class TestPostCorrect(unittest.TestCase):
@@ -121,3 +121,38 @@ class TestReplaceSigAction(unittest.TestCase):
         action.apply(match, command)
         self.assertEqual(command['example'], 'az vmss create --name MyVm --resource-group MyResourceGroup')
         self.assertEqual(command['command'], 'az vmss create')
+
+
+class TestReplaceArgAction(unittest.TestCase):
+    def test_replace(self):
+        action = ReplaceArgAction('~', 'Ubuntu2204')
+        match = MatchResult('az vm create', 2, '--image   UbuntuLTS')
+        command = {
+            "command": "az vm create",
+            "arguments": [
+                "--name",
+                "--resource-group",
+                '--image'
+            ],
+            "example": "az vm create --name MyVm --resource-group MyResourceGroup --image   UbuntuLTS"
+        }
+        action.apply(match, command)
+        self.assertEqual(command['example'], 'az vm create --name MyVm --resource-group MyResourceGroup --image Ubuntu2204')
+
+
+class TestAddArgAction(unittest.TestCase):
+    def test_replace(self):
+        action = AddArgAction('--image', 'Ubuntu2204')
+        match = MatchResult('az vm create', 2, '--resource-group MyResourceGroup')
+        command = {
+            "command": "az vm create",
+            "arguments": [
+                "--name",
+                "--resource-group"
+            ],
+            "example": "az vm create --name MyVm --resource-group MyResourceGroup"
+        }
+        action.apply(match, command)
+        self.assertEqual(command['arguments'][2], '--image')
+        self.assertEqual(command['example'], 'az vm create --name MyVm --resource-group MyResourceGroup --image Ubuntu2204')
+
