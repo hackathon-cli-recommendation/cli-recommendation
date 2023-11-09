@@ -131,3 +131,7 @@ API/local.settings.json
 API/local_settings.py
 
 .vscode/
+.idea/
+
+# Local metadata file cache
+API/cache/

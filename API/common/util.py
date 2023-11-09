@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import rapidfuzz
 import time
 
 from enum import Enum
@@ -87,7 +86,8 @@ def generate_response(data, status, error=None):
 
 
 def determine_strings_are_similar(str1, str2):
-    return fuzz.token_sort_ratio(str1, str2) >= os.environ["KEYWORD_SIMILARITY_SCORE"]
+    return fuzz.token_sort_ratio(str1, str2) >= float(os.environ["KEYWORD_SIMILARITY_SCORE"])
+
 
 def parse_command_info(command_info):
     if not command_info:

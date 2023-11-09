@@ -12,7 +12,6 @@ from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 logger = logging.getLogger(__name__)
 
 
-
 # initialize_openai_service
 # the type of the OpenAI API service
 openai.api_type = "azure"
@@ -38,7 +37,7 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     all_user_msg.append(user_msg)
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
-    
+
     context.custom_context.estimated_history_tokens = estimated_history_tokens
     context.custom_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
     _logging_gpt_call_cost(context)
@@ -105,8 +104,8 @@ def _add_estimated_usage(context, response):
         del context.custom_context.estimated_usage_context_tokens
     response['usage']['estimated_history_tokens'] = estimated_history_tokens
     response['usage']['estimated_prompt_tokens'] = estimated_prompt_tokens
-    
-    # Since one http request contains multiple GPT requests, 
+
+    # Since one http request contains multiple GPT requests,
     # and the fields we count are different each time, they must be cleared to avoid being carried into another GPT request.
     del context.custom_context.gpt_task_name
     del context.custom_context.estimated_question_tokens
