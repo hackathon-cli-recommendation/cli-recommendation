@@ -144,6 +144,11 @@ class CorrectRuleSet(object):
 
     @staticmethod
     def load():
+        # `*` in MatchRule means matching everything.
+        # `~` in ReplaceAction means no change on current field.
+        # Placeholder information:
+        # match_rule: (command_signature, parameter, value)
+        # action: ActionName(parameter, value)
         # An environ example:
         # "CORRECT_RULE_SET": "[{\"match_rule\": \"('*', '--image', 'UbuntuLTS')\",
         # \"action\": \"ReplaceArg('~', 'Ubuntu2204')\"}]"
