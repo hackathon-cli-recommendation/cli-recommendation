@@ -85,25 +85,31 @@ class ReplaceArgAction(Action):
         self.arg_v = arg_v
 
     def apply(self, match: MatchResult, command):
+        # If corresponding field is `~`, no change in the field
         if self.arg_k == '~':
             arg_k = command['arguments'][match.arg_k_idx]
         else:
             arg_k = self.arg_k
         if self.arg_v == '~':
+            # find argument value
             kv = match.arg_kv.split(' ', 1)
             arg_v = kv[1] if len(kv) > 1 else ''
         else:
             arg_v = self.arg_v
 
         if arg_k:
+            # Replace the argument
             command['arguments'][match.arg_k_idx] = arg_k
             arg_kv = arg_k + ' ' + arg_v if arg_v else arg_k
             command['example'] = command['example'].replace(match.arg_kv, arg_kv)
         else:
+            # Remove the argument
+            # We could pop the argument since a traversing is working on the arguments
             command['arguments'][match.arg_k_idx] = None
             command['example'].replace(match.arg_kv, '')
 
     def all_applied(self, command):
+        # Clear the removed arguments
         command['arguments'] = [arg for arg in command['arguments'] if arg is not None]
 
 
@@ -137,11 +143,20 @@ class CorrectRuleSet(object):
 
     @staticmethod
     def load():
+        # An environ example:
+        # "CORRECT_RULE_SET": "[{\"match_rule\": \"('*', '--image', 'UbuntuLTS')\",
+        # \"action\": \"ReplaceArg('~', 'Ubuntu2204')\"}]"
         raw = os.environ.get('CORRECT_RULE_SET', '[]')
         return CorrectRuleSet.load_from_str(raw)
 
     @staticmethod
     def load_from_str(raw):
+        """
+        Args:
+            raw: the raw RuleSet string, e.g.
+                "[{\"match_rule\": \"('*', '--image', 'UbuntuLTS')\", \"action\": \"ReplaceArg('~', 'Ubuntu2204')\"}]"
+        Returns: the new constructed RuleSet
+        """
         try:
             rules = []
             raw_list = json.loads(raw)
