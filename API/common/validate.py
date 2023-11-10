@@ -1,12 +1,13 @@
 import asyncio
 import logging
 import os
+from typing import Optional
 
 from cli_validator import CLIValidator
 
 
 logger = logging.getLogger(__name__)
-validator = None
+validator: Optional[CLIValidator] = None
 initialized = False
 
 
@@ -25,5 +26,4 @@ def validate_command_in_task(command):
     parts = command.split(" -")
     signature = parts[0].strip()
     parameters = ["-{}".format(part).split()[0].strip() for part in parts[1:]]
-    failure = validator.validate_sig_params(signature, parameters)
-    return failure
+    return validator.validate_sig_params(signature, parameters)
