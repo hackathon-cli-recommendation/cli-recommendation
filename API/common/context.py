@@ -111,6 +111,7 @@ class Context():
     tracer = None
     method = None
     endpoint = None
+    responseEmpty = None
 
     def __init__(self, functionOperationId: str, functionInvocationId: str, openaiConfig: OpenAIConfig) -> None:
         self.functionOperationId = functionOperationId
@@ -147,7 +148,8 @@ class Context():
             "originalCall": self.originalCall.toDict(),
             "functionOperationId": self.functionOperationId,
             "functionInvocationId": self.functionInvocationId,
-            "applicationInsightsId": self.applicationInsightsId
+            "applicationInsightsId": self.applicationInsightsId,
+            "responseEmpty": self.responseEmpty,
         }
 
 def log_dependency_call(callName):

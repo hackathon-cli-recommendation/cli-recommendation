@@ -164,6 +164,8 @@ def _add_context_to_queston(context, question, task_list, usage_context):
 
 
 def _build_scenario_response(content):
+    if not content: 
+        return None
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
         logger.info(f"OpenAI Apology Output: {content}")
         return None

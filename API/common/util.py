@@ -76,7 +76,7 @@ def get_param_enum(req: func.HttpRequest, name: str, cls, required=False, defaul
 
 def generate_response(data, status, error=None):
     response_data = {
-        'data': data,
+        'data': data if data != [None] else [],
         'error': error,
         'status': status,
         # The version of the API, which is defined in the function app settings and can be changed without redeploying the whole function.
