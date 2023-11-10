@@ -3,6 +3,7 @@ import os
 from enum import Enum
 import azure.functions as func
 
+from common.correct import correct_scenario
 from common.exception import ParameterException, CopilotException
 from common.service_impl.chatgpt import gpt_generate
 from common.service_impl.knowledge import knowledge_search, pass_verification
@@ -46,6 +47,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             if len(result) == 0 or not pass_verification(question, result):
                 answer = gpt_generate(question, history)
                 result = [answer] if answer else []
+        result = [correct_scenario(s) for s in result]
     except CopilotException as e:
         logger.error(f'Response Status 500: CopilotException: {e.msg}')
         return func.HttpResponse(e.msg, status_code=500)
