@@ -1,20 +1,17 @@
 import json
 import textwrap
 
-
 _default_generate_scenario = [
     {
         "role": "system",
         "content": textwrap.dedent(
             """\
-            You are an assistant who guide others to use Azure CLI and only provide advice on Azure CLI commands or command combinations. 
-            You can complete the task in four steps:
-            1. Parse the task that the user wants to accomplish.
-            2. Determine how many commands are needed to complete the task.
-            3. Confirm the resource name on request.
-            4. If only one command is needed, please output an example of that command. If multiple commands are required, please output an example of a set of commands.
-            When the user requests a random resource name, name the resource name in the format chatgpt-<resource type in lower case>-<current timestamp>.
-            All output must be in the format shown in the follow few-shot examples, Each output must contain a 'Description' property to briefly describe the function of the Script, a 'CommandSet' property containing examples and descriptions of all the commands, and a 'Reason' property detailing the function and flow of the script.
+            You are an assistant who generates corresponding Azure CLI command combinations based on user question. You can complete the task based on the following steps:
+            1. Determine whether the question can be completed by a set of CLI commands. If not, please answer "Sorry, this question is out of my scope" and end this task.
+            2. Analyze which CLI commands and parameters are needed to accurately and completely complete the user question.
+            3. If the user question includes the usage information of potentially relevant CLI commands as context, analyze which commands information in the context are relevant to the user question, and then try to answer the question based on relevant information as much as possible while ignoring irrelevant information.
+            4. Output analysis results in the format of correctly parsed JSON without any additional descriptions that may disrupt JSON parsing, regardless of whether the user's question asks sample scripts or other formats. 
+            5. The JSON output must contain the "scenario" property to briefly describe the function of this CLI script, a "commandSet" property containing the command info, arguments info, examples and descriptions of all the commands, and a "description" property to provide a more comprehensive description of the script but not too long.
             """
         ),
     },
@@ -26,21 +23,10 @@ _default_generate_scenario = [
         "role": "assistant",
         "content": json.dumps(
             {
-                "Description": "Create an Azure Function that connects to an Azure Storage",
-                "CommandSet": [
+                "scenario": "Create an Azure Function that connects to an Azure Storage",
+                "commandSet": [
                     {
-                        "command": "storage account create",
-                        "arguments": [
-                            "--name",
-                            "--location",
-                            "--resource-group",
-                            "--sku",
-                        ],
-                        "reason": "Create an Azure storage account in the resource group.",
-                        "example": "az storage account create --name $storage --location $location --resource-group $resourceGroup --sku $skuStorage",
-                    },
-                    {
-                        "command": "functionapp create",
+                        "command": "az functionapp create",
                         "arguments": [
                             "--name",
                             "--resource-group",
@@ -48,102 +34,32 @@ _default_generate_scenario = [
                             "--consumption-plan-location",
                             "--functions-version",
                         ],
-                        "reason": "Create a serverless function app in the resource group.",
+                        "reason": "Create a serverless function app in the resource group",
                         "example": "az functionapp create --name $functionApp --resource-group $resourceGroup --storage-account $storage --consumption-plan-location $location --functions-version $functionsVersion",
                     },
                     {
-                        "command": "storage account show-connection-string",
+                        "command": "az storage account show-connection-string",
                         "arguments": [
                             "--name",
                             "--resource-group",
                             "--query",
                             "--output",
                         ],
-                        "reason": "Get the storage account connection string. (connstr will be used in subsequent commands).",
+                        "reason": "Get the storage account connection string. (connstr will be used in subsequent commands)",
                         "example": "az storage account show-connection-string --name $storage --resource-group $resourceGroup --query connectionString --output tsv",
                     },
                     {
-                        "command": "functionapp config appsettings set",
+                        "command": "az functionapp config appsettings set",
                         "arguments": ["--name", "--resource-group", "--settings"],
-                        "reason": "Update function app settings to connect to the storage account.",
+                        "reason": "Update function app settings to connect to the storage account",
                         "example": "az functionapp config appsettings set --name $functionApp --resource-group $resourceGroup --settings StorageConStr=$connstr",
                     },
                 ],
-                "Reason": "Create an Azure Function that connects to an Azure Storage",
-            }
-        ),
-    },
-    {
-        "role": "user",
-        "content": "Please help me create a resource group with random resource name",
-    },
-    {
-        "role": "assistant",
-        "content": json.dumps(
-            {
-                "Description": "Create a Resource Group",
-                "CommandSet": [
-                    {
-                        "command": "resource group create",
-                        "arguments": ["--name", "--location"],
-                        "reason": "Create a resource group",
-                        "example": "az group create --name chatgpt-resourcegroup-1682324585 --location $location",
-                    }
-                ],
-                "Reason": "Create a Resource Group by defining group name and location",
-            }
-        ),
-    },
-    {"role": "user", "content": "I want to create a website with service and database"},
-    {
-        "role": "assistant",
-        "content": json.dumps(
-            {
-                "Description": "Connect an app to MongoDB (Cosmos DB).",
-                "CommandSet": [
-                    {
-                        "command": "appservice plan create",
-                        "arguments": ["--name", "--resource-group", "--location"],
-                        "reason": "Create an App Service Plan",
-                        "example": "az appservice plan create --name $appServicePlan --resource-group $resourceGroup --location $location",
-                    },
-                    {
-                        "command": "webapp create",
-                        "arguments": ["--name", "--plan", "--resource-group"],
-                        "reason": "Create a Web App",
-                        "example": "az webapp create --name $webapp --plan $appServicePlan --resource-group $resourceGroup",
-                    },
-                    {
-                        "command": "cosmosdb create",
-                        "arguments": ["--name", "--resource-group", "--kind"],
-                        "reason": "Create a Cosmos DB with MongoDB API",
-                        "example": "az cosmosdb create --name $cosmosdb --resource-group $resourceGroup --kind MongoDB",
-                    },
-                    {
-                        "command": "cosmosdb keys list",
-                        "arguments": [
-                            "--name",
-                            "--resource-group",
-                            "--type",
-                            "--query",
-                            "--output",
-                        ],
-                        "reason": "Get the MongoDB URL (connectionString will be used in subsequent commands).",
-                        "example": "az cosmosdb keys list --name $cosmosdb --resource-group $resourceGroup --type connection-strings --query connectionStrings[0].connectionString --output tsv",
-                    },
-                    {
-                        "command": "webapp config appsettings set",
-                        "arguments": ["--name", "--resource-group", "--settings"],
-                        "reason": "Assign the connection string to an App Setting in the Web App",
-                        "example": "az webapp config appsettings set --name $webapp --resource-group $resourceGroup --settings MONGODB_URL=$connectionString",
-                    },
-                ],
-                "Reason": "Connect an app to MongoDB (Cosmos DB).",
+                "description": "Create an new Azure Function that connects to an Azure Storage by using connectionString",
             }
         ),
     },
 ]
-
 
 _default_split_task = [
     {
@@ -177,7 +93,6 @@ _default_split_task = [
         ),
     },
 ]
-
 
 gs = json.dumps(_default_generate_scenario)
 st = json.dumps(_default_split_task)
