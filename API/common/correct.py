@@ -187,6 +187,6 @@ CORRECT_RULE_SET = CorrectRuleSet.load()
 
 
 def correct_scenario(scenario):
-    for command in scenario.get('CommandSet', []):
+    for command in scenario.get('CommandSet', scenario.get('commandSet', [])):
         CORRECT_RULE_SET.apply(command)
     return scenario
