@@ -6,6 +6,8 @@ from enum import Enum
 from json import JSONDecodeError
 
 import azure.functions as func
+from cli_validator.result import CommandSource
+
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
 from common.exception import CopilotException, GPTInvalidResultException, ParameterException
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
@@ -115,23 +117,25 @@ async def _build_task_context(raw_task, token):
         # If GPT provides a command when splitting task, validate the command.
         cmd = raw_task.split("||")[1]
         validate_result = validate_command_in_task(cmd)
-        if validate_result is None:
+        if validate_result.is_valid and validate_result.cmd_source == CommandSource.CORE_MODULE:
             # If the GPT-provided command is valid, use it as a guide step.
             task = cmd
             chunks = []
-        elif 'not an Azure CLI command' in validate_result.msg:
+        elif validate_result.error_message and 'not an Azure CLI command' in validate_result.error_message:
             # If GPT generates a non-CLI command, like `git clone`
             task = desc
             chunks = []
-        elif 'Unknown Command' in validate_result.msg:
+        elif validate_result.error_message and 'Unknown Command' in validate_result.error_message:
             # If the GPT-provided command has an error in command signature, 
             # retrieve context chunks according to the command signature
             # because hallucination command signatures preserve the semantics of operations without attention issues,
             # and there are always only subtle differences between the hallucination and correct command signatures.
+            task = cmd
             chunks = await retrieve_chunks_for_atomic_task(cmd, token)
             chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
         else:
             # If the GPT-provided command has a correct signature but incorrect parameters,
+            # Or if the command is in extension
             # keep all correct parameters in guide step and suggest the possible correct parameters in the context chunk
             chunk = await retrieve_chunk_for_command(cmd, token)
             if chunk:
