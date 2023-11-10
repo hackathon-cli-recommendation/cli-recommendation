@@ -56,7 +56,8 @@ def initialize_chatgpt_service_params():
     chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 800,
                               "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
     for key, value in chatgpt_service_params.items():
-        chatgpt_service_params[key] = os.environ.get(key, default=value)
+        env_key = 'OPENAI_' + key.upper()
+        chatgpt_service_params[key] = os.environ.get(env_key, default=value)
         if key in ["temperature", "top_p"]:
             chatgpt_service_params[key] = float(chatgpt_service_params[key])
         elif key in ["max_tokens", "frequency_penalty", "presence_penalty"]:
