@@ -150,6 +150,7 @@ class CorrectRuleSet(object):
         # match_rule: (command_signature, parameter, value)
         # action: ActionName(parameter, value)
         # An environ example:
+        # Find all commands with parameter value `--image UbuntuLTS` and replace the value of `--image` from `UbuntuLTS` to `Ubuntu2204`
         # "CORRECT_RULE_SET": "[{\"match_rule\": \"('*', '--image', 'UbuntuLTS')\",
         # \"action\": \"ReplaceArg('~', 'Ubuntu2204')\"}]"
         raw = os.environ.get('CORRECT_RULE_SET', '[]')
