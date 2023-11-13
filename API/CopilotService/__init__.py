@@ -46,14 +46,16 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
             context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
             gpt_result = gpt_generate(context, system_msg, question, history)
-            result = [_build_scenario_response(gpt_result)] if gpt_result else []
+            result = _build_scenario_response(gpt_result)
+            result = [result] if result else []
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
             if len(result) == 0 or not pass_verification(question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
                 context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
                 gpt_result = gpt_generate(context, system_msg, question, history)
-                result = [_build_scenario_response(gpt_result)] if gpt_result else []
+                result = _build_scenario_response(gpt_result)
+                result = [result] if result else []
         result = [correct_scenario(s) for s in result]
     except CopilotException as e:
         logger.error(f'Response Status 500: CopilotException: {e.msg}')
