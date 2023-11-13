@@ -27,7 +27,9 @@ def telemetry(func):
             with tracer.span(name=endpointName) as span:
                 response = func(*args, **kwargs)
             context.custom_context.originalCall.end()
-            context.custom_context.responseEmpty = len(json.loads(response.get_body())['data']) == 0
+            if response.status_code == 200:
+                context.custom_context.responseEmpty = len(json.loads(response.get_body())['data']) == 0
+            context.custom_context.responseStatus = response.status_code
         except Exception as e:
             context.custom_context.responseEmpty = True
             tracebackStr = traceback.format_exc()

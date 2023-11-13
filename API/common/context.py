@@ -111,6 +111,7 @@ class Context():
     tracer = None
     method = None
     endpoint = None
+    responseStatus = None
     responseEmpty = None
 
     def __init__(self, functionOperationId: str, functionInvocationId: str, openaiConfig: OpenAIConfig) -> None:
@@ -149,6 +150,7 @@ class Context():
             "functionOperationId": self.functionOperationId,
             "functionInvocationId": self.functionInvocationId,
             "applicationInsightsId": self.applicationInsightsId,
+            "responseStatus": self.responseStatus,
             "responseEmpty": self.responseEmpty,
         }
 
