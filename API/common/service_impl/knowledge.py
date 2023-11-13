@@ -3,13 +3,11 @@ import os
 from enum import Enum
 from typing import List, Optional
 
-import openai
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from common.exception import CopilotException, GPTInvalidBoolException, GPTTimeOutException
-from common.service_impl.chatgpt import initialize_chatgpt_service_params
+from common.exception import GPTInvalidBoolException
+from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
 from common.util import ScenarioSourceType
-from openai.error import OpenAIError, Timeout, TryAgain
 
 
 class SearchScope(int, Enum):
