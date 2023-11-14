@@ -1,10 +1,11 @@
+import json
 import logging
 import os
-import openai
-import json
-import azure.functions as func
 
-from common.util import get_param_str, get_param_list
+import azure.functions as func
+import openai
+from common.util import get_param_list, get_param_str
+
 from .src.response import generate_response
 
 # initialize_openai_service
@@ -64,5 +65,5 @@ def initialize_chatgpt_service_params():
             chatgpt_service_params[key] = int(chatgpt_service_params[key])
     default_msg = json.loads(os.environ.get(
         "OPENAI_DEFAULT_MSG", default=default_msg))
-    chatgpt_service_params["messages"] = default_msg
+    chatgpt_service_params["messages"] = json.loads(default_msg)
     return chatgpt_service_params
