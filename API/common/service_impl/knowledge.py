@@ -78,13 +78,12 @@ def get_search_results(
         results = search_client.search(
             query_answer='extractive',
             query_caption='extractive',
-            query_language='en-us',
             semantic_configuration_name='semanctic-config',
             search_text=search_statement,
             filter=filter,
             include_total_count=True,
             search_fields=search_fields,
-            query_caption_highlight=True,
+            query_caption_highlight_enabled=True,
             highlight_fields=", ".join(search_fields) if search_fields else None,
             top=top,
             query_type='semantic')
