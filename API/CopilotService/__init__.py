@@ -50,7 +50,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             result = [result] if result else []
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
-            if len(result) == 0 or not pass_verification(question, result):
+            if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
                 context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
                 gpt_result = gpt_generate(context, system_msg, question, history)
