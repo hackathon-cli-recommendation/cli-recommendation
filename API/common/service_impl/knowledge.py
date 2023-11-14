@@ -46,18 +46,16 @@ def knowledge_search(keyword: str, top_num: int):
 
 
 def knowledge_search_semantic(keyword: str, top_num: int, scope=SearchScope.Scenario):
-    # source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER, ScenarioSourceType.MANUAL_INPUT]
-    # To ensure quality, only search scenarios which source equal to 1
-    source_filter = [ScenarioSourceType.SAMPLE_REPO]
+    # Please refer to ScenarioSourceType for the corresponding numbers of the search source
+    knowledge_search_source = os.environ.get("KNOWLEDGE_SEARCH_SOURCE", default="1 3")
+    source_filter = list(map(int, knowledge_search_source.split()))
     results = get_search_results(keyword, source_filter, top_num, scope.get_search_fields(), SearchType.Semantic)
     return results
 
 
 def knowledge_search_full_text(keyword: str, top_num: int, scope=SearchScope.Scenario, match_rule=MatchRule.All):
-    if os.environ["ENABLE_CLAWLER_SCENARIOS"].lower() == "true":
-        source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER]
-    else:
-        source_filter = [ScenarioSourceType.SAMPLE_REPO]
+    knowledge_search_source = os.environ.get("KNOWLEDGE_SEARCH_SOURCE", default="1 3")
+    source_filter = list(map(int, knowledge_search_source.split()))
     results = get_search_results(build_search_statement(keyword, match_rule), source_filter, top_num, scope.get_search_fields(), SearchType.FullText)
     if len(keyword.split()) > 1 and len(results) < top_num and match_rule == MatchRule.All:
         or_results = get_search_results(build_or_search_statement(keyword), source_filter, top_num, scope.get_search_fields(), SearchType.FullText)
