@@ -178,6 +178,7 @@ def _find_most_relevant_command_chunk(context, question, chunks):
     parts = relevant_result.rsplit('||', 1)
     if len(parts) == 2:
         chunk_desc, score = parts
+        chunk_desc = chunk_desc.strip('"')
         if int(score) >= int(os.environ.get("RELEVANT_SCORE_THRESHOLD", "8")):
             try:
                 idx = [chunk["summary"] for chunk in chunks].index(chunk_desc)
