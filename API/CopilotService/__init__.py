@@ -17,7 +17,6 @@ from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic
     merge_chunks_by_command, retrieve_chunk_for_command, trim_command_and_chunk_with_invalid_params
 from common.telemetry import telemetry
 from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
-from json import JSONDecodeError
 
 from common import validate_command_in_task
 
@@ -127,7 +126,7 @@ async def _build_task_context(raw_task, token):
             # retrieve context chunks according to the command signature
             # because hallucination command signatures preserve the semantics of operations without attention issues,
             # and there are always only subtle differences between the hallucination and correct command signatures.
-            task = cmd
+            task = desc
             chunks = await retrieve_chunks_for_atomic_task(cmd, token)
             chunks = filter_chunks_by_keyword_similarity(chunks, cmd)
         else:

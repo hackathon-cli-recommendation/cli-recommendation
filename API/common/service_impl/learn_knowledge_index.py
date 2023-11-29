@@ -95,6 +95,9 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
             unmatched_params.append(param)
     # all used required params are popped from chunk.
     # So parameters in required parameters are all unused required parameters and should be included in context.
+    for param in chunk['required parameters']:
+        cmd_params.append(param['name'].split(' ')[0])
+    chunk_copy.pop('required parameters')
     chunk_copy['optional parameters'] = []
     for param in unmatched_params:
         similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
