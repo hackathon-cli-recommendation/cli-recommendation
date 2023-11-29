@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Optional
 
 from cli_validator import CLIValidator
@@ -12,7 +13,7 @@ initialized = False
 async def initialize_validator():
     global validator
     validator = CLIValidator()
-    await validator.load_metas_async()
+    await validator.load_metas_async(version=os.environ.get("CLIMetaVersion"))
     global initialized
     initialized = True
     logger.info('Validator metas loaded!')
