@@ -1,10 +1,11 @@
+import json
 import logging
 import os
-import openai
-import json
-import azure.functions as func
 
-from common.util import get_param_str, get_param_list
+import azure.functions as func
+import openai
+from common.util import get_param_list, get_param_str
+
 from .src.response import generate_response
 
 # initialize_openai_service
@@ -56,12 +57,13 @@ def initialize_chatgpt_service_params():
     chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 800,
                               "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
     for key, value in chatgpt_service_params.items():
-        chatgpt_service_params[key] = os.environ.get(key, default=value)
+        env_key = 'OPENAI_' + key.upper()
+        chatgpt_service_params[key] = os.environ.get(env_key, default=value)
         if key in ["temperature", "top_p"]:
             chatgpt_service_params[key] = float(chatgpt_service_params[key])
         elif key in ["max_tokens", "frequency_penalty", "presence_penalty"]:
             chatgpt_service_params[key] = int(chatgpt_service_params[key])
     default_msg = json.loads(os.environ.get(
         "OPENAI_DEFAULT_MSG", default=default_msg))
-    chatgpt_service_params["messages"] = default_msg
+    chatgpt_service_params["messages"] = json.loads(default_msg)
     return chatgpt_service_params
