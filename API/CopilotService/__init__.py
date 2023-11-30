@@ -2,8 +2,8 @@ import asyncio
 import json
 import logging
 import os
+import textwrap
 from enum import Enum
-from json import JSONDecodeError
 
 import azure.functions as func
 from cli_validator.result import CommandSource
@@ -11,7 +11,7 @@ from cli_validator.result import CommandSource
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
 from common.correct import correct_scenario
 from common.exception import CopilotException, GPTInvalidResultException, ParameterException
-from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG
+from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG, DEFAULT_FIND_SIMILAR_MSG
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
 from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task, filter_chunks_by_keyword_similarity, \
@@ -55,7 +55,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(context, question))
-            question = _add_context_to_queston(context, question, task_list, usage_context)
+            question = _add_context_to_question(context, question, task_list, usage_context)
 
         if service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
@@ -80,6 +80,10 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
 
 async def _retrieve_context_from_learn_knowledge_index(context, question):
+    result = await _retrieve_context_for_atomic_question(context, question)
+    if result is not None:
+        return result
+
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
     context.custom_context.gpt_task_name = 'SPLIT_TASK'
     context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
@@ -102,6 +106,16 @@ async def _retrieve_context_from_learn_knowledge_index(context, question):
     # TODO The logic of filtering, ranking, and aggregating chunks
 
     return task_list, chunk_list
+
+
+async def _retrieve_context_for_atomic_question(context, question):
+    chunks = await retrieve_chunks_for_atomic_task(question)
+    if len(chunks) == 0:
+        return None
+    relevant_chunk = _find_most_relevant_command_chunk(context, question, chunks)
+    if relevant_chunk is None:
+        return None
+    return [relevant_chunk['command']], relevant_chunk
 
 
 async def _build_task_context(raw_task, token):
@@ -153,7 +167,31 @@ async def _build_task_context(raw_task, token):
     return task, chunks
 
 
-def _add_context_to_queston(context, question, task_list, usage_context):
+def _find_most_relevant_command_chunk(context, question, chunks):
+    system_msg = os.environ.get("OPENAI_FIND_SIMILAR_MSG", default=DEFAULT_FIND_SIMILAR_MSG)
+    relevant_question = textwrap.dedent(
+        """\
+        text A: "{}"
+        text set B: {}
+        """.format(question, " ".join([f'"{chunk["summary"]}"' for chunk in chunks]))
+    )
+    context.custom_context.gpt_task_name = 'FIND_SIMILAR'
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
+    relevant_result: str = gpt_generate(context, system_msg, relevant_question, history_msg=[])
+    parts = relevant_result.rsplit('||', 1)
+    if len(parts) == 2:
+        chunk_desc, score = parts
+        chunk_desc = chunk_desc.strip('"')
+        if int(score) >= int(os.environ.get("RELEVANT_SCORE_THRESHOLD", "8")):
+            try:
+                idx = [chunk["summary"] for chunk in chunks].index(chunk_desc)
+                return chunks[idx]
+            except ValueError:
+                return None
+    return None
+
+
+def _add_context_to_question(context, question, task_list, usage_context):
     context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
     context.custom_context.task_list_lens = len(task_list)
     context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)

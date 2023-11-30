@@ -96,8 +96,33 @@ _default_split_task = [
     },
 ]
 
-gs = json.dumps(_default_generate_scenario)
-st = json.dumps(_default_split_task)
+_default_find_similar = [
+    {
+        "role": "system",
+        "content": textwrap.dedent(
+            """\
+            You are an assistant looking for the most similar text. I will give you a text A and a text set B. From the text set B, find the text which is most similar to text A and provide a similarity score between that text and A. Please follow the following rules to complete this task:
+            1. When evaluating the text similarity, focus on the similarity of the semantics, content and intent of text, the expressive style and order of keywords are not important.
+            2. The range of similarity scores is an integer from 0 to 10, the closer the semantic and content meanings are, the higher the score.
+            3. Output the text which is most similar to Text A and their similarity score, and separate them with "||"
+            """
+        ),
+    },
+    {
+        "role": "user",
+        "content": textwrap.dedent(
+            """\
+            text A: "private ip address"
+            text set B: "public ip address" "public ip address allocation" "public ip address dns name" "public ip sku" "ip private address"
+            """
+        ),
+    },
+    {
+        "role": "assistant",
+        "content": "ip private address||9",
+    },
+]
 
 DEFAULT_GENERATE_SCENARIO_MSG = json.dumps(_default_generate_scenario)
 DEFAULT_SPLIT_TASK_MSG = json.dumps(_default_split_task)
+DEFAULT_FIND_SIMILAR_MSG = json.dumps(_default_find_similar)
