@@ -94,7 +94,7 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
         else:
             unmatched_params.append(param)
     # all used required params are popped from chunk.
-    # So parameters in required parameters are all unused required parameters and should be included in context.
+    # So parameters in required parameters are all unused required parameters and should be included in guiding steps.
     for param in chunk['required parameters']:
         cmd_params.append(param['name'].split(' ')[0])
     chunk_copy.pop('required parameters')

@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from enum import Enum
@@ -47,18 +46,16 @@ def knowledge_search(keyword: str, top_num: int):
 
 
 def knowledge_search_semantic(keyword: str, top_num: int, scope=SearchScope.Scenario):
-    # source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER, ScenarioSourceType.MANUAL_INPUT]
-    # To ensure quality, only search scenarios which source equal to 1
-    source_filter = [ScenarioSourceType.SAMPLE_REPO]
+    # Please refer to ScenarioSourceType for the corresponding numbers of the search source
+    knowledge_search_source = os.environ.get("KNOWLEDGE_SEARCH_SOURCE", default="1 3")
+    source_filter = list(map(int, knowledge_search_source.split()))
     results = get_search_results(keyword, source_filter, top_num, scope.get_search_fields(), SearchType.Semantic)
     return results
 
 
 def knowledge_search_full_text(keyword: str, top_num: int, scope=SearchScope.Scenario, match_rule=MatchRule.All):
-    if os.environ["ENABLE_CLAWLER_SCENARIOS"].lower() == "true":
-        source_filter = [ScenarioSourceType.SAMPLE_REPO, ScenarioSourceType.DOC_CRAWLER]
-    else:
-        source_filter = [ScenarioSourceType.SAMPLE_REPO]
+    knowledge_search_source = os.environ.get("KNOWLEDGE_SEARCH_SOURCE", default="1 3")
+    source_filter = list(map(int, knowledge_search_source.split()))
     results = get_search_results(build_search_statement(keyword, match_rule), source_filter, top_num, scope.get_search_fields(), SearchType.FullText)
     if len(keyword.split()) > 1 and len(results) < top_num and match_rule == MatchRule.All:
         or_results = get_search_results(build_or_search_statement(keyword), source_filter, top_num, scope.get_search_fields(), SearchType.FullText)
@@ -81,13 +78,12 @@ def get_search_results(
         results = search_client.search(
             query_answer='extractive',
             query_caption='extractive',
-            query_language='en-us',
             semantic_configuration_name='semanctic-config',
             search_text=search_statement,
             filter=filter,
             include_total_count=True,
             search_fields=search_fields,
-            query_caption_highlight=True,
+            query_caption_highlight_enabled=True,
             highlight_fields=", ".join(search_fields) if search_fields else None,
             top=top,
             query_type='semantic')

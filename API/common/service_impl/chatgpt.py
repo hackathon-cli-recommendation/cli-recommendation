@@ -1,12 +1,13 @@
 import json
 import logging
 import os
+from json import JSONDecodeError
 from typing import Any, Dict, List
 
 import openai
 import tiktoken
 from common.context import log_dependency_call
-from common.exception import CopilotException, GPTTimeOutException
+from common.exception import CopilotException, GPTInvalidResultException, GPTTimeOutException
 from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 
 logger = logging.getLogger(__name__)
@@ -120,11 +121,12 @@ def initialize_chatgpt_service_params(prompt_msg=None, chatgpt_service_params=No
     # give initial values to the parameters
 
     if not chatgpt_service_params:
-        chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 4000, 
+        chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 4000,
                                   "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
 
     for key, value in chatgpt_service_params.items():
-        chatgpt_service_params[key] = os.environ.get(key, default=value)
+        env_key = 'OPENAI_' + key.upper()
+        chatgpt_service_params[key] = os.environ.get(env_key, default=value)
         if key in ["temperature", "top_p"]:
             chatgpt_service_params[key] = float(chatgpt_service_params[key])
         elif key in ["max_tokens", "frequency_penalty", "presence_penalty"]:

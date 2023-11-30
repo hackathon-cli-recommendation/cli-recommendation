@@ -9,6 +9,7 @@ import azure.functions as func
 from cli_validator.result import CommandSource
 
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
+from common.correct import correct_scenario
 from common.exception import CopilotException, GPTInvalidResultException, ParameterException
 from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
@@ -58,17 +59,20 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         if service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
+            context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
             gpt_result = gpt_generate(context, system_msg, question, history)
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
         elif service_type == ServiceType.MIX:
             result = knowledge_search(question, top_num)
 
-            if len(result) == 0 or not pass_verification(question, result):
+            if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
+                context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
                 gpt_result = gpt_generate(context, system_msg, question, history)
                 result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
+        result = [correct_scenario(s) for s in result]
     except CopilotException as e:
         logger.error(f'Response Status 500: CopilotException: {e.msg}')
         return func.HttpResponse(e.msg, status_code=500)
@@ -122,7 +126,7 @@ async def _build_task_context(raw_task, token):
             task = desc
             chunks = []
         elif validate_result.error_message and 'Unknown Command' in validate_result.error_message:
-            # If the GPT-provided command has an error in command signature, 
+            # If the GPT-provided command has an error in command signature,
             # retrieve context chunks according to the command signature
             # because hallucination command signatures preserve the semantics of operations without attention issues,
             # and there are always only subtle differences between the hallucination and correct command signatures.
@@ -164,7 +168,7 @@ def _add_context_to_queston(context, question, task_list, usage_context):
 
 
 def _build_scenario_response(content):
-    if not content: 
+    if not content:
         return None
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
         logger.info(f"OpenAI Apology Output: {content}")

@@ -27,16 +27,20 @@ def telemetry(func):
             with tracer.span(name=endpointName) as span:
                 response = func(*args, **kwargs)
             context.custom_context.originalCall.end()
-            context.custom_context.responseEmpty = len(json.loads(response.get_body())['data']) == 0
+            if response.status_code == 200:
+                context.custom_context.responseEmpty = len(json.loads(response.get_body())['data']) == 0
+            context.custom_context.responseStatus = response.status_code
         except Exception as e:
             context.custom_context.responseEmpty = True
             tracebackStr = traceback.format_exc()
             logging.error(tracebackStr)
             context.custom_context.originalCall.end(exception=tracebackStr)
+            context.custom_context.responseStatus = 500
             response = func.HttpResponse(e.msg, status_code=500)
         finally:
             with tracer.span(name=endpointName) as span:
-                span.add_attribute("Response Empty", context.custom_context.responseEmpty)
+                span.add_attribute("ResponseStatus", context.custom_context.responseStatus)
+                span.add_attribute("ResponseEmpty", context.custom_context.responseEmpty)
             context.custom_context.calculateUsage()
             if enable_local_log:
                 startTime = context.custom_context.originalCall.startTime.strftime("%Y%m%d-%H%M%S")
