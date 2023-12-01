@@ -4,6 +4,7 @@ import os
 import traceback
 from functools import wraps
 
+import azure.functions as functions
 from common.context import init_custom_context
 
 enable_local_log = os.environ.get('ENABLE_LOCAL_LOG_PERFORMANCE', False)
@@ -35,7 +36,7 @@ def telemetry(func):
             logging.error(tracebackStr)
             context.custom_context.originalCall.end(exception=tracebackStr)
             context.custom_context.responseStatus = 500
-            response = func.HttpResponse(e.msg, status_code=500)
+            response = functions.HttpResponse(e.msg, status_code=500)
         finally:
             with tracer.span(name=endpointName) as span:
                 span.add_attribute("ResponseStatus", context.custom_context.responseStatus)

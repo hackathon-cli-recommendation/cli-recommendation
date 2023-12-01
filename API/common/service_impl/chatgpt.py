@@ -39,6 +39,7 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
     
+    context.custom_context.estimated_question_tokens = num_tokens_from_message(user_msg)
     context.custom_context.estimated_history_tokens = estimated_history_tokens
     context.custom_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
     _logging_gpt_call_cost(context)
