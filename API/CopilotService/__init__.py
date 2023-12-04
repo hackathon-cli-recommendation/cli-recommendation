@@ -44,7 +44,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
                 result = []
         elif service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
-            context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
             gpt_result = gpt_generate(context, system_msg, question, history)
             result = _build_scenario_response(gpt_result)
             result = [result] if result else []
@@ -52,7 +51,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             result = knowledge_search(question, top_num)
             if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
-                context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
                 gpt_result = gpt_generate(context, system_msg, question, history)
                 result = _build_scenario_response(gpt_result)
                 result = [result] if result else []

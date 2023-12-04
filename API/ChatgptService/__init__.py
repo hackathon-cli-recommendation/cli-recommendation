@@ -65,5 +65,5 @@ def initialize_chatgpt_service_params():
             chatgpt_service_params[key] = int(chatgpt_service_params[key])
     default_msg = json.loads(os.environ.get(
         "OPENAI_DEFAULT_MSG", default=default_msg))
-    chatgpt_service_params["messages"] = json.loads(default_msg)
+    chatgpt_service_params["messages"] = default_msg
     return chatgpt_service_params
