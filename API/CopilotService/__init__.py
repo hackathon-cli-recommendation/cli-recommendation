@@ -7,19 +7,20 @@ from json import JSONDecodeError
 
 import azure.functions as func
 from cli_validator.result import CommandSource
-
+from common import validate_command_in_task
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
 from common.correct import correct_scenario
 from common.exception import CopilotException, GPTInvalidResultException, ParameterException
 from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
-from common.service_impl.learn_knowledge_index import retrieve_chunks_for_atomic_task, filter_chunks_by_keyword_similarity, \
-    merge_chunks_by_command, retrieve_chunk_for_command, trim_command_and_chunk_with_invalid_params
+from common.service_impl.learn_knowledge_index import (filter_chunks_by_keyword_similarity,
+                                                       merge_chunks_by_command,
+                                                       retrieve_chunk_for_command,
+                                                       retrieve_chunks_for_atomic_task,
+                                                       trim_command_and_chunk_with_invalid_params)
 from common.telemetry import telemetry
-from common.util import get_param_str, get_param_int, get_param_enum, get_param, generate_response
-
-from common import validate_command_in_task
+from common.util import generate_response, get_param, get_param_enum, get_param_int, get_param_str
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         if service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
-            context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
             gpt_result = gpt_generate(context, system_msg, question, history)
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
@@ -68,7 +68,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
             if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
-                context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
                 gpt_result = gpt_generate(context, system_msg, question, history)
                 result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
@@ -82,7 +81,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 async def _retrieve_context_from_learn_knowledge_index(context, question):
     system_msg = os.environ.get("OPENAI_SPLIT_TASK_MSG", default=DEFAULT_SPLIT_TASK_MSG)
     context.custom_context.gpt_task_name = 'SPLIT_TASK'
-    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
     generate_results = gpt_generate(context, system_msg, question, history_msg=[])
     try:
         raw_task_list = _build_scenario_response(generate_results)
@@ -154,7 +152,6 @@ async def _build_task_context(raw_task, token):
 
 
 def _add_context_to_queston(context, question, task_list, usage_context):
-    context.custom_context.estimated_question_tokens = num_tokens_from_message(question)
     context.custom_context.task_list_lens = len(task_list)
     context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
     context.custom_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
