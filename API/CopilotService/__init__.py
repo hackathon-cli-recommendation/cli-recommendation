@@ -178,10 +178,22 @@ def _build_scenario_response(content):
         # In other cases, convert directly to json
         else:
             content = json.loads(content)
-        return content
+        return _map_unknown_to_step(content)
     except JSONDecodeError as e:
         logger.error(f"JSONDecodeError: {content}")
         raise GPTInvalidResultException from e
+
+
+def _map_unknown_to_step(scenario):
+    for cmd in scenario["commandSet"]:
+        if "command" in cmd and not cmd["command"].startswith("az "):
+            cmd["step"] = cmd["command"]
+            cmd.pop("command")
+            try:
+                cmd.pop("arguments")
+            except KeyError:
+                pass
+    return scenario
 
 
 def _join_chunks_in_context(context_info_list):
