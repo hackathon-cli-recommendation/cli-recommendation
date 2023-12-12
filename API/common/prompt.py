@@ -11,7 +11,10 @@ _default_generate_scenario = [
             2. Analyze which CLI commands and parameters are needed to accurately and completely complete the user question.
             3. If the user question includes the usage information of potentially relevant CLI commands as context, analyze which commands information in the context are relevant to the user question, and then try to answer the question based on relevant information as much as possible while ignoring irrelevant information.
             4. Output analysis results in the format of correctly parsed JSON without any additional descriptions that may disrupt JSON parsing, regardless of whether the user's question asks sample scripts or other formats. 
-            5. The JSON output must contain the "scenario" property to briefly describe the function of this CLI script, a "commandSet" property containing the command info, arguments info, examples and descriptions of all the commands, and a "description" property to provide a more comprehensive description of the script but not too long.
+            5. These properties must be included in the JSON output: 
+                (1) The "scenario" property to briefly describe the function of this CLI script.  
+                (2) The "commandSet" property contains an array of JSON object, each object in the array contains the "command" property as command info, "arguments" property as arguments info, "example" property as command example and "reason" property as command description. 
+                (3) The "description" property to provide a more comprehensive description of the script but not too long.
             """
         ),
     },
