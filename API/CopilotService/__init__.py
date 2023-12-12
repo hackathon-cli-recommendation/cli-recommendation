@@ -83,7 +83,7 @@ async def _retrieve_context_from_learn_knowledge_index(context, question):
     context.custom_context.gpt_task_name = 'SPLIT_TASK'
     generate_results = gpt_generate(context, system_msg, question, history_msg=[])
     try:
-        raw_task_list = _build_scenario_response(generate_results)
+        raw_task_list = _build_json_output(generate_results)
     except Exception as e:
         logger.error(f"Error while parsing the generate results: {generate_results}, {e}")
         return None, None
@@ -164,7 +164,7 @@ def _add_context_to_queston(context, question, task_list, usage_context):
     return question
 
 
-def _build_scenario_response(content):
+def _build_json_output(content):
     if not content:
         return None
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
@@ -178,10 +178,14 @@ def _build_scenario_response(content):
         # In other cases, convert directly to json
         else:
             content = json.loads(content)
-        return _map_unknown_to_step(content)
+        return content
     except JSONDecodeError as e:
         logger.error(f"JSONDecodeError: {content}")
         raise GPTInvalidResultException from e
+
+
+def _build_scenario_response(content):
+    _map_unknown_to_step(_build_json_output(content))
 
 
 def _map_unknown_to_step(scenario):
