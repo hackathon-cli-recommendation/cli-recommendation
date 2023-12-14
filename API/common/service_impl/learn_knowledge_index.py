@@ -16,7 +16,7 @@ async def _embedding_text_to_vector(text):
     try:
         headers = {
             'Content-Type': 'application/json',
-            'api-key': os.environ["OPENAI_API_KEY"]
+            'api-key': os.environ.get("EMBEDDING_OPENAI_API_KEY", os.environ["OPENAI_API_KEY"])
         }
 
         payload = {

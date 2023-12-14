@@ -185,7 +185,7 @@ def _build_json_output(content):
 
 
 def _build_scenario_response(content):
-    _map_unknown_to_step(_build_json_output(content))
+    return _map_unknown_to_step(_build_json_output(content))
 
 
 def _map_unknown_to_step(scenario):

@@ -75,7 +75,7 @@ def _get_auth_token(scope):
         logger.error("Missing required environment variables to get auth token!")
         return None
 
-    app = msal.ConfidentialClientApplication(client_id, authority, client_credential)
+    app = msal.ConfidentialClientApplication(client_id, client_credential, authority)
     try:
         result = app.acquire_token_for_client(scopes=scope)
         return result['access_token']
