@@ -6,6 +6,7 @@ from enum import Enum
 from json import JSONDecodeError
 
 import azure.functions as func
+from azure.core.exceptions import HttpResponseError
 from cli_validator.result import CommandSource
 from common import validate_command_in_task
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
@@ -69,7 +70,11 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
         elif service_type == ServiceType.MIX:
-            result = knowledge_search(question, top_num)
+            try:
+                result = knowledge_search(question, top_num)
+            except HttpResponseError as e:
+                logger.error('Error from knowledge search: \n%s', e)
+                result = []
 
             if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
