@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 import os
 import re
@@ -6,6 +5,8 @@ from rapidfuzz import fuzz
 
 import httpx
 from common.util import determine_strings_are_similar, parse_command_info
+
+logger = logging.getLogger(__name__)
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
 chunk_sieve_top_num = int(os.environ.get("CHUNK_SIEVE_TOP_NUM", "3"))
@@ -141,7 +142,15 @@ def convert_chunks_to_json(chunks_list):
     for chunk in chunks_list["items"]:
         chunk2json = {}
         chunk2json["command"] = chunk["title"]
-        chunk2json["summary"] = re.search(r"### Summary\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"]).group(1)
+        command_match = re.search(r"### Command\n(.*)$", chunk["content"], flags=re.MULTILINE)
+        if not command_match or command_match.group(1) != chunk["title"]:
+            logger.warning("Command not found or invalid chunk '%s': \n%s", chunk["title"], chunk["content"])
+            continue
+        # Some chunk titles have parentheses, e.g. "az aks nodepool scale (aks-preview extension)"
+        chunk2json["command"] = chunk2json["command"].split('(')[0].strip()
+        summary = re.search(r"### Summary\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"])
+        if summary:
+            chunk2json["summary"] = summary.group(1)
         optional_params = []
         optional_params_content = re.search(r"### Optional Parameters\n\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"])
         optional_params_content = optional_params_content.group(1) if optional_params_content else ""

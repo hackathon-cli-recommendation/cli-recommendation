@@ -56,7 +56,12 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(context, question))
-            question = _add_context_to_queston(context, question, task_list, usage_context)
+            token_limit = os.environ.get("CONTEXT_TOKEN_LIMIT", 4096)
+            completion_tokens = os.environ.get('OPENAI_MAX_TOKENS', 4000)   # The default value should be the same as the one in initialize_chatgpt_service_params
+            factor = os.environ.get('ESTIMATION_ADJUSTMENT_FACTOR', 0.95)
+            system_msg_tokens = num_tokens_from_message(system_msg)
+            token_remains = (token_limit - completion_tokens) * factor - system_msg_tokens
+            question = _add_context_to_queston(context, question, task_list, usage_context, token_limit=token_remains)
 
         if service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
@@ -151,16 +156,28 @@ async def _build_task_context(raw_task, token):
     return task, chunks
 
 
-def _add_context_to_queston(context, question, task_list, usage_context):
+def _add_context_to_queston(context, question, task_list, usage_context, token_limit):
     context.custom_context.task_list_lens = len(task_list)
     context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
     context.custom_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
     if task_list:
         guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
-        question = question + guiding_steps_separation + str(task_list) + '\n'
+        question = _try_add_steps_to_queston(question, guiding_steps_separation, task_list, token_limit)
     if usage_context:
         commands_info_separation = "\nBelow are some potentially relevant CLI commands information as context, please select the commands information that may be used in the scenario of the question from context, and supplement the missing commands information of context\n"
-        question = question + commands_info_separation + str(usage_context)
+        question = _try_add_steps_to_queston(question, commands_info_separation, usage_context, token_limit)
+    return question
+
+
+def _try_add_steps_to_queston(question, intro, steps, token_limit):
+    if not steps:
+        return question
+    new_steps = [f'\n{intro}\n{str(steps[0])}'] + steps[1:]
+    new_steps = ['\n' + str(step) for step in new_steps]
+    for step in new_steps:
+        if num_tokens_from_message(question + step) > token_limit:
+            return question
+        question += step
     return question
 
 
