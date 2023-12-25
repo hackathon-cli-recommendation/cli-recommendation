@@ -96,14 +96,16 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
             unmatched_params.append(param)
     # all used required params are popped from chunk.
     # So parameters in required parameters are all unused required parameters and should be included in guiding steps.
-    for param in chunk['required parameters']:
-        cmd_params.append(param['name'].split(' ')[0])
-    chunk_copy.pop('required parameters')
+    if 'required parameters' in chunk:
+        for param in chunk['required parameters']:
+            cmd_params.append(param['name'].split(' ')[0])
+        chunk_copy.pop('required parameters')
     chunk_copy['optional parameters'] = []
-    for param in unmatched_params:
-        similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
-        chunk_copy['optional parameters'].extend(similar_params)
-    chunk_copy['optional parameters'] = _dedup_param_group(chunk_copy['optional parameters'])
+    if 'optional parameters' in chunk:
+        for param in unmatched_params:
+            similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
+            chunk_copy['optional parameters'].extend(similar_params)
+        chunk_copy['optional parameters'] = _dedup_param_group(chunk_copy['optional parameters'])
     valid_cmd = cmd_sig + ' ' + ' '.join(cmd_params)
     return valid_cmd, chunk_copy
 
