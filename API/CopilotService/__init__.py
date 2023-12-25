@@ -56,10 +56,10 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(context, question))
-            token_limit = os.environ.get("CONTEXT_TOKEN_LIMIT", 4096)
-            completion_tokens = os.environ.get('OPENAI_MAX_TOKENS', 4000)   # The default value should be the same as the one in initialize_chatgpt_service_params
-            factor = os.environ.get('ESTIMATION_ADJUSTMENT_FACTOR', 0.95)
-            system_msg_tokens = num_tokens_from_message(system_msg)
+            token_limit = int(os.environ.get("CONTEXT_TOKEN_LIMIT", 4096))
+            completion_tokens = int(os.environ.get('OPENAI_MAX_TOKENS', 4000))   # The default value should be the same as the one in initialize_chatgpt_service_params
+            factor = float(os.environ.get('ESTIMATION_ADJUSTMENT_FACTOR', 0.95))
+            system_msg_tokens = num_tokens_from_message(system_msg) or 0
             token_remains = (token_limit - completion_tokens) * factor - system_msg_tokens
             question = _add_context_to_queston(context, question, task_list, usage_context, token_limit=token_remains)
 
@@ -175,7 +175,7 @@ def _try_add_steps_to_queston(question, intro, steps, token_limit):
     new_steps = [f'\n{intro}\n{str(steps[0])}'] + steps[1:]
     new_steps = ['\n' + str(step) for step in new_steps]
     for step in new_steps:
-        if num_tokens_from_message(question + step) > token_limit:
+        if (num_tokens_from_message(question + step) or 0) > token_limit:
             return question
         question += step
     return question
