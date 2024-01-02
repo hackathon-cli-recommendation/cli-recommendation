@@ -49,9 +49,13 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         result = []
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
-            result = knowledge_search(question, top_num)
-            if len(result) == 0 or not pass_verification(context, question, result):
-                result = []
+            try:
+                result = knowledge_search(question, top_num)
+                if len(result) == 0 or not pass_verification(context, question, result):
+                    result = []
+            except HttpResponseError as e:
+                logger.error('Response Status 500: Error from knowledge search: \n%s', e, e)
+                return func.HttpResponse(f'Knowledge Search failed: {e.message}', status_code=500)
 
             return func.HttpResponse(generate_response(result, 200))
 
@@ -73,7 +77,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             try:
                 result = knowledge_search(question, top_num)
             except HttpResponseError as e:
-                logger.error('Error from knowledge search: \n%s', e)
+                logger.error('Error from knowledge search: \n%s', e, e)
                 result = []
 
             if len(result) == 0 or not pass_verification(context, question, result):
