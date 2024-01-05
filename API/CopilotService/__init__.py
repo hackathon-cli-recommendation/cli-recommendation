@@ -6,6 +6,7 @@ from enum import Enum
 from json import JSONDecodeError
 
 import azure.functions as func
+from azure.core.exceptions import HttpResponseError
 from cli_validator.result import CommandSource
 from common import validate_command_in_task
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
@@ -48,15 +49,24 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     try:
         result = []
         if service_type == ServiceType.KNOWLEDGE_SEARCH:
-            result = knowledge_search(question, top_num)
-            if len(result) == 0 or not pass_verification(context, question, result):
-                result = []
+            try:
+                result = knowledge_search(question, top_num)
+                if len(result) == 0 or not pass_verification(context, question, result):
+                    result = []
+            except HttpResponseError as e:
+                logger.error('Response Status 500: Error from knowledge search: \n%s', e, exc_info=e)
+                return func.HttpResponse(f'Knowledge Search failed: {e.message}', status_code=500)
 
             return func.HttpResponse(generate_response(result, 200))
 
         if os.environ.get('ENABLE_RETRIEVAL_AUGMENTED_GENERATION', "true").lower() == "true":
             task_list, usage_context = asyncio.run(_retrieve_context_from_learn_knowledge_index(context, question))
-            question = _add_context_to_queston(context, question, task_list, usage_context)
+            token_limit = int(os.environ.get("CONTEXT_TOKEN_LIMIT", 4096))
+            completion_tokens = int(os.environ.get('OPENAI_MAX_TOKENS', 4000))   # The default value should be the same as the one in initialize_chatgpt_service_params
+            factor = float(os.environ.get('ESTIMATION_ADJUSTMENT_FACTOR', 0.95))
+            system_msg_tokens = num_tokens_from_message(system_msg) or 0
+            token_remains = (token_limit - completion_tokens) * factor - system_msg_tokens
+            question = _add_context_to_queston(context, question, task_list, usage_context, token_limit=token_remains)
 
         if service_type == ServiceType.GPT_GENERATION:
             context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
@@ -64,7 +74,11 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
             result = [_build_scenario_response(gpt_result)] if gpt_result else []
 
         elif service_type == ServiceType.MIX:
-            result = knowledge_search(question, top_num)
+            try:
+                result = knowledge_search(question, top_num)
+            except HttpResponseError as e:
+                logger.error('Error from knowledge search: \n%s', e, exc_info=e)
+                result = []
 
             if len(result) == 0 or not pass_verification(context, question, result):
                 context.custom_context.gpt_task_name = 'GENERATE_SCENARIO'
@@ -151,16 +165,28 @@ async def _build_task_context(raw_task, token):
     return task, chunks
 
 
-def _add_context_to_queston(context, question, task_list, usage_context):
+def _add_context_to_queston(context, question, task_list, usage_context, token_limit):
     context.custom_context.task_list_lens = len(task_list)
     context.custom_context.estimated_task_list_tokens = num_tokens_from_message(task_list)
     context.custom_context.estimated_usage_context_tokens = num_tokens_from_message(usage_context)
     if task_list:
         guiding_steps_separation = "\nHere are the steps you can refer to for this question:\n"
-        question = question + guiding_steps_separation + str(task_list) + '\n'
+        question = _try_add_steps_to_queston(question, guiding_steps_separation, task_list, token_limit)
     if usage_context:
         commands_info_separation = "\nBelow are some potentially relevant CLI commands information as context, please select the commands information that may be used in the scenario of the question from context, and supplement the missing commands information of context\n"
-        question = question + commands_info_separation + str(usage_context)
+        question = _try_add_steps_to_queston(question, commands_info_separation, usage_context, token_limit)
+    return question
+
+
+def _try_add_steps_to_queston(question, intro, steps, token_limit):
+    if not steps:
+        return question
+    new_steps = [f'\n{intro}\n{str(steps[0])}'] + steps[1:]
+    new_steps = ['\n' + str(step) for step in new_steps]
+    for step in new_steps:
+        if (num_tokens_from_message(question + step) or 0) > token_limit:
+            return question
+        question += step
     return question
 
 
@@ -185,11 +211,23 @@ def _build_json_output(content):
 
 
 def _build_scenario_response(content):
-    _map_unknown_to_step(_build_json_output(content))
+    return _handle_scenario(_build_json_output(content))
+
+
+def _handle_scenario(scenario):
+    scenario = _ensure_command_set(scenario)
+    scenario = _map_unknown_to_step(scenario)
+    return scenario
+
+
+def _ensure_command_set(scenario):
+    if 'commandSet' not in scenario:
+        scenario['commandSet'] = []
+    return scenario
 
 
 def _map_unknown_to_step(scenario):
-    for cmd in scenario["commandSet"]:
+    for cmd in scenario.get("commandSet", []):
         if "command" in cmd and not cmd["command"].startswith("az "):
             cmd["step"] = cmd["command"]
             cmd.pop("command")

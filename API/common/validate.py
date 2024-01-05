@@ -12,7 +12,7 @@ initialized = False
 
 async def initialize_validator():
     global validator
-    validator = CLIValidator()
+    validator = CLIValidator(cache_dir=os.environ.get("CLIMetaCacheDir", "./cache"))
     await validator.load_metas_async(version=os.environ.get("CLIMetaVersion"))
     global initialized
     initialized = True

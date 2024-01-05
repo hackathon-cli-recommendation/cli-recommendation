@@ -1,4 +1,3 @@
-from typing import Optional
 import logging
 import os
 import re
@@ -6,6 +5,8 @@ from rapidfuzz import fuzz
 
 import httpx
 from common.util import determine_strings_are_similar, parse_command_info
+
+logger = logging.getLogger(__name__)
 
 embedding_model_url = os.environ["EMBEDDING_MODEL_URL"]
 chunk_sieve_top_num = int(os.environ.get("CHUNK_SIEVE_TOP_NUM", "3"))
@@ -16,7 +17,7 @@ async def _embedding_text_to_vector(text):
     try:
         headers = {
             'Content-Type': 'application/json',
-            'api-key': os.environ["OPENAI_API_KEY"]
+            'api-key': os.environ.get("EMBEDDING_OPENAI_API_KEY", os.environ["OPENAI_API_KEY"])
         }
 
         payload = {
@@ -95,14 +96,16 @@ def trim_command_and_chunk_with_invalid_params(command, chunk):
             unmatched_params.append(param)
     # all used required params are popped from chunk.
     # So parameters in required parameters are all unused required parameters and should be included in guiding steps.
-    for param in chunk['required parameters']:
-        cmd_params.append(param['name'].split(' ')[0])
-    chunk_copy.pop('required parameters')
+    if 'required parameters' in chunk:
+        for param in chunk['required parameters']:
+            cmd_params.append(param['name'].split(' ')[0])
+        chunk_copy.pop('required parameters')
     chunk_copy['optional parameters'] = []
-    for param in unmatched_params:
-        similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
-        chunk_copy['optional parameters'].extend(similar_params)
-    chunk_copy['optional parameters'] = _dedup_param_group(chunk_copy['optional parameters'])
+    if 'optional parameters' in chunk:
+        for param in unmatched_params:
+            similar_params = _find_top_n_similar_params(param, chunk['optional parameters'])
+            chunk_copy['optional parameters'].extend(similar_params)
+        chunk_copy['optional parameters'] = _dedup_param_group(chunk_copy['optional parameters'])
     valid_cmd = cmd_sig + ' ' + ' '.join(cmd_params)
     return valid_cmd, chunk_copy
 
@@ -141,7 +144,15 @@ def convert_chunks_to_json(chunks_list):
     for chunk in chunks_list["items"]:
         chunk2json = {}
         chunk2json["command"] = chunk["title"]
-        chunk2json["summary"] = re.search(r"### Summary\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"]).group(1)
+        command_match = re.search(r"### Command\n(.*)$", chunk["content"], flags=re.MULTILINE)
+        if not command_match or command_match.group(1) != chunk["title"]:
+            logger.warning("Command not found or invalid chunk '%s': \n%s", chunk["title"], chunk["content"])
+            continue
+        # Some chunk titles have parentheses, e.g. "az aks nodepool scale (aks-preview extension)"
+        chunk2json["command"] = chunk2json["command"].split('(')[0].strip()
+        summary = re.search(r"### Summary\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"])
+        if summary:
+            chunk2json["summary"] = summary.group(1)
         optional_params = []
         optional_params_content = re.search(r"### Optional Parameters\n\n([\s\S]*?)(?=\n\n###|\Z)", chunk["content"])
         optional_params_content = optional_params_content.group(1) if optional_params_content else ""
