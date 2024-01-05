@@ -211,11 +211,23 @@ def _build_json_output(content):
 
 
 def _build_scenario_response(content):
-    return _map_unknown_to_step(_build_json_output(content))
+    return _handle_scenario(_build_json_output(content))
+
+
+def _handle_scenario(scenario):
+    scenario = _ensure_command_set(scenario)
+    scenario = _map_unknown_to_step(scenario)
+    return scenario
+
+
+def _ensure_command_set(scenario):
+    if 'commandSet' not in scenario:
+        scenario['commandSet'] = []
+    return scenario
 
 
 def _map_unknown_to_step(scenario):
-    for cmd in scenario["commandSet"]:
+    for cmd in scenario.get("commandSet", []):
         if "command" in cmd and not cmd["command"].startswith("az "):
             cmd["step"] = cmd["command"]
             cmd.pop("command")
