@@ -3,7 +3,7 @@ import os
 import azure.functions as func
 
 from common.exception import ParameterException
-from common.util import get_param
+from common.param import get_param
 
 class SearchScope(int, Enum):
     All = 1
