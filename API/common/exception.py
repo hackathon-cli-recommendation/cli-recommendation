@@ -1,22 +1,15 @@
 from common.util import generate_response
 
 
-class CopilotException(Exception):
-    ERROR_CODE = 501
+class RequestException(Exception):
+    ERROR_CODE = 400
 
-    def __init__(self, msg: str) -> None:
+    def __init__(self, msg: str):
         super().__init__()
         self.msg = msg
 
     def to_response_body(self) -> str:
         return generate_response([], self.ERROR_CODE, self.msg)
-
-
-class RequestException(CopilotException):
-    ERROR_CODE = 400
-
-    def __init__(self, msg: str):
-        super().__init__(msg)
 
 
 class ParameterException(RequestException):
@@ -33,11 +26,15 @@ class QuestionOutOfScopeException(RequestException):
         super().__init__(msg)
 
 
-class ServiceException(CopilotException):
+class ServiceException(Exception):
     ERROR_CODE = 502
 
     def __init__(self, msg: str):
-        super().__init__(msg)
+        super().__init__()
+        self.msg = msg
+
+    def to_response_body(self) -> str:
+        return generate_response([], self.ERROR_CODE, self.msg)
 
 
 class GPTException(ServiceException):
