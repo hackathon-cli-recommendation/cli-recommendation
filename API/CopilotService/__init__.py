@@ -11,7 +11,7 @@ from cli_validator.result import CommandSource
 from common import validate_command_in_task
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
 from common.correct import correct_scenario
-from common.exception import CopilotException, GPTInvalidResultException, KnowledgeSearchException, UserException, \
+from common.exception import CopilotException, GPTInvalidResultException, KnowledgeSearchException, RequestException, \
     QuestionOutOfScopeException
 from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
@@ -44,7 +44,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         service_type = get_param_enum(req, 'type', ServiceType, default=os.environ.get("DEFAULT_SERVICE_TYPE", ServiceType.GPT_GENERATION))
 
         result = copilot_service(context, question, history, top_num, service_type)
-    except UserException as e:
+    except RequestException as e:
         logger.error(f'Error: UserException: {e.msg}', exc_info=e)
         return func.HttpResponse(e.to_response_body(), status_code=400)
     except CopilotException as e:

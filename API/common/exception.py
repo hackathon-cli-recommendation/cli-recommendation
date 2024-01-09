@@ -12,21 +12,21 @@ class CopilotException(Exception):
         return generate_response([], self.ERROR_CODE, self.msg)
 
 
-class UserException(CopilotException):
+class RequestException(CopilotException):
     ERROR_CODE = 400
 
     def __init__(self, msg: str):
         super().__init__(msg)
 
 
-class ParameterException(UserException):
+class ParameterException(RequestException):
     ERROR_CODE = 401
 
     def __init__(self, msg: str) -> None:
         super().__init__(msg)
 
 
-class QuestionOutOfScopeException(UserException):
+class QuestionOutOfScopeException(RequestException):
     ERROR_CODE = 402
 
     def __init__(self, msg: str) -> None:
