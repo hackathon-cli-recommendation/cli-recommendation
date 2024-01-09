@@ -53,7 +53,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     except Exception as e:
         logger.error(f'Unexpected Error: {str(e)}', exc_info=e)
         return func.HttpResponse(generate_response(
-            None, 500,
+            [], 500,
             'We encountered an unexpected error while processing your request. '
             'Please try again later or contact our support team for assistance.'), status_code=500)
     return func.HttpResponse(generate_response(result, 200))

@@ -9,7 +9,7 @@ class CopilotException(Exception):
         self.msg = msg
 
     def to_response_body(self) -> str:
-        return generate_response(None, self.ERROR_CODE, self.msg)
+        return generate_response([], self.ERROR_CODE, self.msg)
 
 
 class UserException(CopilotException):
