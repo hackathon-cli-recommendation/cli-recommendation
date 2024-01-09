@@ -68,6 +68,9 @@ async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, fil
         async with httpx.AsyncClient() as client:
             result = await client.post(learn_knowledge_index_url, json=payload, headers=headers)
             result.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        logging.error('HTTPStatusError while retrieving chunks from learn knowledge index service: %s', e, exc_info=True)
+        return []
     except httpx.RequestError as e:
         logging.error('Error while retrieving chunks from learn knowledge index service: %s', e)
         return []

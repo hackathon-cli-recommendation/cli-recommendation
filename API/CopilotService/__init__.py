@@ -11,7 +11,8 @@ from cli_validator.result import CommandSource
 from common import validate_command_in_task
 from common.auth import get_auth_token_for_learn_knowlegde_index, verify_token
 from common.correct import correct_scenario
-from common.exception import CopilotException, GPTInvalidResultException, ParameterException, KnowledgeSearchException
+from common.exception import CopilotException, GPTInvalidResultException, KnowledgeSearchException, UserException, \
+    QuestionOutOfScopeException
 from common.prompt import DEFAULT_GENERATE_SCENARIO_MSG, DEFAULT_SPLIT_TASK_MSG
 from common.service_impl.chatgpt import gpt_generate, num_tokens_from_message
 from common.service_impl.knowledge_base import knowledge_search, pass_verification
@@ -41,21 +42,20 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         history = get_param(req, 'history', default=[])
         top_num = get_param_int(req, 'top_num', default=5)
         service_type = get_param_enum(req, 'type', ServiceType, default=os.environ.get("DEFAULT_SERVICE_TYPE", ServiceType.GPT_GENERATION))
-    except ParameterException as e:
-        logger.error(f'Response Status 400: ParameterException: {e.msg}', exc_info=e)
-        return func.HttpResponse(e.msg, status_code=400)
 
-    try:
         result = copilot_service(context, question, history, top_num, service_type)
+    except UserException as e:
+        logger.error(f'Error: UserException: {e.msg}', exc_info=e)
+        return func.HttpResponse(e.to_response_body(), status_code=400)
     except CopilotException as e:
-        logger.error(f'Error: CopilotException: {e.msg}', exc_info=e)
-        return func.HttpResponse(e.to_response(), status_code=200)
+        logger.error(f'Error: ServiceException: {e.msg}', exc_info=e)
+        return func.HttpResponse(e.to_response_body(), status_code=500)
     except Exception as e:
         logger.error(f'Unexpected Error: {str(e)}', exc_info=e)
         return func.HttpResponse(generate_response(
-            {}, 500,
+            None, 500,
             'We encountered an unexpected error while processing your request. '
-            'Please try again later or contact our support team for assistance.'))
+            'Please try again later or contact our support team for assistance.'), status_code=500)
     return func.HttpResponse(generate_response(result, 200))
 
 
@@ -204,10 +204,10 @@ def _try_add_steps_to_queston(question, intro, steps, token_limit):
 
 def _build_json_output(content):
     if not content:
-        return None
+        raise QuestionOutOfScopeException('Sorry, the question is out of scope. ')
     if content and content[0].isalpha() and ('sorry' in content.lower() or 'apolog' in content.lower()):
         logger.info(f"OpenAI Apology Output: {content}")
-        return None
+        raise QuestionOutOfScopeException(content)
 
     try:
         # If only single quotes exist, replace them with double quotes.
