@@ -27,7 +27,7 @@ class QuestionOutOfScopeException(RequestException):
 
 
 class ServiceException(Exception):
-    ERROR_CODE = 502
+    ERROR_CODE = 501
 
     def __init__(self, msg: str):
         super().__init__()
@@ -38,35 +38,35 @@ class ServiceException(Exception):
 
 
 class GPTException(ServiceException):
-    ERROR_CODE = 503
+    ERROR_CODE = 502
 
     def __init__(self, msg: str):
         super().__init__(msg)
 
 
 class GPTTimeOutException(GPTException):
-    ERROR_CODE = 504
+    ERROR_CODE = 503
 
     def __init__(self) -> None:
         super().__init__('GPT response Time out.')
 
 
 class GPTInvalidResultException(GPTException):
-    ERROR_CODE = 505
+    ERROR_CODE = 504
 
     def __init__(self) -> None:
         super().__init__('GPT generated result could not be parsed into json')
 
 
 class GPTInvalidBoolException(GPTException):
-    ERROR_CODE = 506
+    ERROR_CODE = 505
 
     def __init__(self) -> None:
         super().__init__('GPT generated result is not a bool value')
 
 
 class KnowledgeSearchException(ServiceException):
-    ERROR_CODE = 507
+    ERROR_CODE = 506
 
     def __init__(self) -> None:
         super().__init__('Knowledge Search Internal Error')
