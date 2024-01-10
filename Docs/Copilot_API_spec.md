@@ -51,4 +51,98 @@
         | arguments          | string     | arguments                                 |
         | reason             | string     | command description                       |
         | example            | string     | command example                           |
-        
+
+    * Example：
+        Request Body:
+        ```http
+        {
+             "question": "How do I deploy a python application on Azure?",
+             "history": [
+                     {
+                         "role": "user",
+                         "content": "a question from user"
+                     },
+                     {
+                         "role": "assistant",
+                         "content": "the answer of the question"
+                     }
+                 ],
+             "top_num": 5,
+             "type": "Mix"
+         }
+        ```
+
+        Response Body:
+        - Having high-quality answers
+        ```json
+        {
+             "data": [
+                 {
+                     "history_msg": [ // only for GPT request
+                         {
+                             "role": "user", 
+                             "content": "How do i create an kubernetes cluster with service mesh using Azure CLI"
+                         }, 
+                         {
+                             "role": "assistant", 
+                             "content": "{'Description': 'Create an Azure Kubernetes Service (AKS) cluster and install the Azure Service Operator', 'CommandSet': [{'command': 'aks create', 'arguments': ['--resource-group', '--name', '--node-count', '--enable-addons', '--generate-ssh-keys'], 'reason': 'Create an Azure Kubernetes Service (AKS) cluster.', 'example': 'az aks create --resource-group chatgpt-ResourceGroup-123456 --name chatgpt-AKS-123456 --node-count 2 --enable-addons monitoring --generate-ssh-keys'}, {'command': 'aks get-credentials', 'arguments': ['--resource-group', '--name'], 'reason': 'Get the credentials for the Kubernetes cluster.', 'example': 'az aks get-credentials --resource-group chatgpt-ResourceGroup-123456 --name chatgpt-AKS-123456'}, {'command': 'apply', 'arguments': ['-f'], 'reason': 'Install the Azure Service Operator on the cluster.', 'example': 'kubectl apply -f https://raw.githubusercontent.com/Azure/azure-service-operator/master/charts/azure-service-operator/crds.yaml'}], 'Reason': 'To create an Azure Kubernetes Service (AKS) cluster and install the Azure Service Operator, you need to create the AKS cluster, get the credentials for the cluster, and then apply the Azure Service Operator.'}"
+                         }
+                     ], 
+                     "commandSet": [
+                         {
+                             "command": "aks create", 
+                             "arguments": [
+                                 "--resource-group", 
+                                 "--name", 
+                                 "--node-count", 
+                                 "--enable-addons", 
+                                 "--generate-ssh-keys"
+                             ], 
+                             "reason": "Create an Azure Kubernetes Service (AKS) cluster.", 
+                             "example": "az aks create --resource-group chatgpt-ResourceGroup-123456 --name chatgpt-AKS-123456 --node-count 2 --enable-addons monitoring --generate-ssh-keys"
+                         }, 
+                         {
+                             "command": "aks get-credentials", 
+                             "arguments": [
+                                 "--resource-group", 
+                                 "--name"
+                             ], 
+                             "reason": "Get the credentials for the Kubernetes cluster.", 
+                             "example": "az aks get-credentials --resource-group chatgpt-ResourceGroup-123456 --name chatgpt-AKS-123456"
+                         }, 
+                         {
+                             "command": "apply", 
+                             "arguments": [
+                                 "-f"
+                             ], 
+                             "reason": "Install the Azure Service Operator on the cluster.", 
+                             "example": "kubectl apply -f https://raw.githubusercontent.com/Azure/azure-service-operator/master/charts/azure-service-operator/crds.yaml"
+                         }
+                     ], 
+                     "firstCommand": "aks create", 
+                     "scenario": "Create an Azure Kubernetes Service (AKS) cluster and install the Azure Service Operator", 
+                     "description": "To create an Azure Kubernetes Service (AKS) cluster and install the Azure Service Operator, you need to create the AKS cluster, get the credentials for the cluster, and then apply the Azure Service Operator."
+                 }
+             ], 
+             "error": null,
+             "status": 200, 
+             "api_version": "1.1.0-alpha"
+         }
+        ```
+
+        - No high-quality answers
+        ```json
+         {"data": [], "error": null, "status": 200, "api_version": "1.0.0"}
+        ```
+
+        - Bad request error
+        ```json
+         {"data": [], "error": "Bad Request Error", "status": 400, "api_version": "1.0.0"}
+        ```
+
+        - Service internal error
+        ```json
+         {"data": [], "error": "service internal error", "status": 500, "api_version": "1.0.0"}
+        ```
+
+---
