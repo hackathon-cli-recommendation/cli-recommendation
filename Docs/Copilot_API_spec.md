@@ -2,8 +2,8 @@
 * <span id = "Copilot">CLI Handler for Azure Copilot</span>
 
     * Request URL：
-      - Pord: https://clitools-copilot-fdcvbhgkfkhpata5.z01.azurefd.net/api/copilotservice
-      - Dog Food: https://cli-copilot-dogfood.azurewebsites.net/api/copilotservice
+      - Pord: <Update later>
+      - Dog Food: <Update later>
 
     * Request Method：`POST`
 
