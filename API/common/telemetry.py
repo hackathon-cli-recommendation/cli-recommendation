@@ -31,13 +31,14 @@ def telemetry(func):
             if response.status_code == 200:
                 context.custom_context.responseEmpty = len(json.loads(response.get_body())['data']) == 0
             context.custom_context.responseStatus = response.status_code
+            return response
         except Exception as e:
             context.custom_context.responseEmpty = True
+            logging.error(f'Fatal Error: {str(e)}', exc_info=e)
             tracebackStr = traceback.format_exc()
-            logging.error(tracebackStr)
             context.custom_context.originalCall.end(exception=tracebackStr)
             context.custom_context.responseStatus = 500
-            response = functions.HttpResponse(e.msg, status_code=500)
+            return functions.HttpResponse(f'Fatal Error: {str(e)}', status_code=500)
         finally:
             with tracer.span(name=endpointName) as span:
                 span.add_attribute("ResponseStatus", context.custom_context.responseStatus)
@@ -55,6 +56,5 @@ def telemetry(func):
             # but if you want to query application insights database then application insights id is the only option
             logging.info(f"functionOperationId={context.custom_context.functionOperationId}, functionInvocationId={context.custom_context.functionInvocationId}, applicationInsightsId={context.custom_context.applicationInsightsId}")
 
-            return response
     return innerFunc
 

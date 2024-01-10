@@ -4,7 +4,7 @@ import os
 
 import azure.functions as func
 import openai
-from common.util import get_param_list, get_param_str
+from common.param import get_param_list, get_param_str
 
 from .src.response import generate_response
 

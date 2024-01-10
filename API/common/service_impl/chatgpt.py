@@ -1,13 +1,12 @@
 import json
 import logging
 import os
-from json import JSONDecodeError
 from typing import Any, Dict, List
 
 import openai
 import tiktoken
 from common.context import log_dependency_call
-from common.exception import CopilotException, GPTInvalidResultException, GPTTimeOutException
+from common.exception import GPTTimeOutException, GPTException
 from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 
 logger = logging.getLogger(__name__)
@@ -50,9 +49,9 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     except (TryAgain, Timeout) as e:
         raise GPTTimeOutException() from e
     except RateLimitError as e:
-        raise CopilotException('The OpenAI API rate limit is exceeded.') from e
+        raise GPTException('The OpenAI API rate limit is exceeded.') from e
     except OpenAIError as e:
-        raise CopilotException('There is some error from the OpenAI.') from e
+        raise GPTException('There is some error from the OpenAI.') from e
     chatCompletion = response.choices[0].message.content
     response.usage['model'] = response.model
     response = {

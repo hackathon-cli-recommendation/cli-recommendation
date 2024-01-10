@@ -5,7 +5,8 @@ import os
 import azure.functions as func
 
 from common.exception import ParameterException
-from common.util import ScenarioSourceType, get_param_int, get_param_str
+from common.util import ScenarioSourceType
+from common.param import get_param_int, get_param_str
 from .src.search_service import get_search_results
 
 from .src.util import MatchRule, SearchScope, append_results, build_or_search_statement, build_search_statement, get_param_match_rule, get_param_search_scope
