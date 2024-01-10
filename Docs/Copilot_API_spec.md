@@ -35,11 +35,20 @@
         | Name               | Type       | Description                               |
         | ------------------ | ---------- | ----------------------------------------- |
         | scenario           | string     | scnario name                              |
-        | source             | int        | Scenario source: 1. sample repo 2.document crawler  |
-        | commandSet         | json(list) | command sequence in scenario              |
+        | source             | int        | Scenario source: 1. sample repo 2.document crawler 3.expert input |
+        | commandSet         | JSON (list) | [Command Set](#command_set)              |
         | firstCommand       | string     | first command in scenario                 |
-        | source_url         | string     | link to origin file                       |
+        | source_url         | string     | link to origin file (knowlegde search only) |
         | update_time        | string     | when the scenario updated                 |
         | description        | string     | scenario description                      |
-        | score              | float      | Search score                              |
-        | highlights         | json       | highlight related content with &lt;em&gt; |
+        | score              | float      | Search score (knowlegde search only)                              |
+        | highlights         | json       | highlight related content with &lt;em&gt; (knowlegde search only) |
+  
+        <span id = "command_set">Command Set</span>
+        | Name               | Type       | Description                               |
+        | ------------------ | ---------- | ----------------------------------------- |
+        | command            | string     | command name                              |
+        | arguments          | string     | arguments                                 |
+        | reason             | string     | command description                       |
+        | example            | string     | command example                           |
+        
