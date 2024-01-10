@@ -29,9 +29,9 @@
         | status       | int          | Status code                               |
         | error        | JSON         | Error information                         |
         | api_version  | string       | The API version (x.x.x) parsed from environment variables. the MAJOR version for major upgrades, the MINOR version for new feature, and the PATCH version for bugfix |
-        | data         | JSON (list)  | [Search Result](#search_result)           |
+        | data         | JSON (list)  | [Copilot Result](#copilot_result)           |
 
-        <span id = "search_result">Search Result</span>
+        <span id = "copilot_result">Copilot Result</span>
         | Name               | Type       | Description                               |
         | ------------------ | ---------- | ----------------------------------------- |
         | scenario           | string     | scnario name                              |
