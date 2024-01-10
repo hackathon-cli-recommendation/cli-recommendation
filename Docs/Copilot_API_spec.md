@@ -52,7 +52,8 @@
         | reason             | string     | command description                       |
         | example            | string     | command example                           |
 
-    * Example：
+    * Example:
+
         Request Body:
         ```http
         {
