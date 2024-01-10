@@ -138,12 +138,12 @@
 
         - Bad request error
         ```json
-         {"data": [], "error": "Bad Request Error", "status": 4xx, "api_version": "1.0.0"}
+         {"data": [], "error": "Bad Request Error", "status": 400, "api_version": "1.0.0"}
         ```
 
         - Service internal error
         ```json
-         {"data": [], "error": "service internal error", "status": 5xx, "api_version": "1.0.0"}
+         {"data": [], "error": "service internal error", "status": 500, "api_version": "1.0.0"}
         ```
 
 ---
