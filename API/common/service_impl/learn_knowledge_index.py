@@ -49,13 +49,13 @@ async def _retrieve_chunks_from_learn_knowledge_index_service(vector_values, fil
             'Authorization': os.environ["LEARN_KNOWLEDGE_INDEX_ACCESS_TOKEN"] if not token else token
         }
 
-        filter = "depotName eq 'Azure.azure-cli-docs'"
+        filter = "depotName eq 'Azure.azure-cli-docs' and pageType eq 'azure-cli'"
         if filter_command:
             filter = f"({filter}) and (title eq '{filter_command}')"
 
         payload = {
             "filter": filter,
-            "vector":{
+            "vector": {
                 "values": vector_values,
                 "top": int(os.environ["RETRIEVED_NUMBER_OF_CHUNKS"])
             }
