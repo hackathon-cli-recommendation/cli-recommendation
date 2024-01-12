@@ -24,6 +24,8 @@ class MatchRule(object):
     def match(self, command) -> Generator[MatchResult, Any, None]:
         if self.sig != '*' and self.sig != command['command']:
             return
+        if not ('arguments' in command and 'example' in command):
+            return
         for idx, arg_k in enumerate(command['arguments']):
             if self.arg_k != '*' and self.arg_k != arg_k:
                 continue
@@ -110,7 +112,8 @@ class ReplaceArgAction(Action):
 
     def all_applied(self, command):
         # Clear the removed arguments
-        command['arguments'] = [arg for arg in command['arguments'] if arg is not None]
+        if 'arguments' in command:
+            command['arguments'] = [arg for arg in command['arguments'] if arg is not None]
 
 
 class AddArgAction(Action):

@@ -38,6 +38,31 @@ class TestPostCorrect(unittest.TestCase):
         self.assertNotIn('az vm create', command['example'])
         self.assertIn('az vmss create', command['example'])
 
+    def test_partial_command_1(self):
+        command = {
+            "command": "az vm create",
+            "reason": "Show the details of the load balancer",
+            "example": "az vm create --name MyVm --resource-group MyResourceGroup --image UbuntuLTS --query \"frontendIpConfigurations[0].publicIpAddress.id\""
+        }
+        rule_set_str = json.dumps(self.RULE_SET)
+        rule_set = CorrectRuleSet.load_from_str(rule_set_str)
+        rule_set.apply(command)
+
+    def test_partial_command_2(self):
+        command = {
+            "command": "az vm create",
+            "arguments": [
+                "--name",
+                "--resource-group",
+                "--image",
+                "--query"
+            ],
+            "reason": "Show the details of the load balancer"
+        }
+        rule_set_str = json.dumps(self.RULE_SET)
+        rule_set = CorrectRuleSet.load_from_str(rule_set_str)
+        rule_set.apply(command)
+
 
 class TestMatchRule(unittest.TestCase):
     def test_match(self):
