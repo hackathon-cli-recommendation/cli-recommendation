@@ -4,7 +4,10 @@ openai==0.27.4
 azure-search-documents==11.4.0
 PyJWT
 cryptography
+rapidfuzz
 msal
+./vendor/cli_validator-0.0.2-py3-none-any.whl
+httpx
 tiktoken
 opencensus
 opencensus-ext-azure

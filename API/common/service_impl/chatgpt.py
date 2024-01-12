@@ -1,13 +1,12 @@
 import json
 import logging
 import os
-from json import JSONDecodeError
 from typing import Any, Dict, List
 
 import openai
 import tiktoken
 from common.context import log_dependency_call
-from common.exception import CopilotException, GPTInvalidResultException, GPTTimeOutException
+from common.exception import GPTTimeOutException, GPTException
 from openai.error import OpenAIError, RateLimitError, Timeout, TryAgain
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     all_user_msg.append(user_msg)
     chatgpt_service_params["messages"].append(
         {"role": "user", "content": "\n".join(all_user_msg)})
-    
+
     context.custom_context.estimated_question_tokens = num_tokens_from_message(user_msg)
     context.custom_context.estimated_history_tokens = estimated_history_tokens
     context.custom_context.estimated_prompt_tokens = num_tokens_from_messages(chatgpt_service_params["messages"])
@@ -50,9 +49,9 @@ def gpt_generate(context, system_msg: str, user_msg: str, history_msg: List[Dict
     except (TryAgain, Timeout) as e:
         raise GPTTimeOutException() from e
     except RateLimitError as e:
-        raise CopilotException('The OpenAI API rate limit is exceeded.') from e
+        raise GPTException('The OpenAI API rate limit is exceeded.') from e
     except OpenAIError as e:
-        raise CopilotException('There is some error from the OpenAI.') from e
+        raise GPTException('There is some error from the OpenAI.') from e
     chatCompletion = response.choices[0].message.content
     response.usage['model'] = response.model
     response = {
@@ -106,8 +105,8 @@ def _add_estimated_usage(context, response):
         del context.custom_context.estimated_usage_context_tokens
     response['usage']['estimated_history_tokens'] = estimated_history_tokens
     response['usage']['estimated_prompt_tokens'] = estimated_prompt_tokens
-    
-    # Since one http request contains multiple GPT requests, 
+
+    # Since one http request contains multiple GPT requests,
     # and the fields we count are different each time, they must be cleared to avoid being carried into another GPT request.
     del context.custom_context.gpt_task_name
     del context.custom_context.estimated_question_tokens
@@ -123,7 +122,7 @@ def initialize_chatgpt_service_params(prompt_msg=None, chatgpt_service_params=No
 
     if not chatgpt_service_params:
         chatgpt_service_params = {"engine": "GPT_4_32k", "temperature": 0.5, "max_tokens": 4000,
-                              "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+                                  "top_p": 0.95, "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
 
     for key, value in chatgpt_service_params.items():
         env_key = 'OPENAI_' + key.upper()

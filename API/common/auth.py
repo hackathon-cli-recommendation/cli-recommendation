@@ -6,8 +6,8 @@ import os
 from functools import wraps
 
 import jwt
-import msal
 import requests
+from azure.identity import DefaultAzureCredential
 from azure.functions import HttpResponse
 from jwt.algorithms import RSAAlgorithm
 
@@ -66,24 +66,17 @@ def verify_token(func):
     return wrapper
 
 
-def _get_auth_token(scope):
-    client_id = os.environ.get("CLIENT_ID")
-    authority = os.environ.get("AUTHORITY_URL")
-    client_credential = os.environ.get("CLIENT_SECRET")
-    
-    if client_id is None or authority is None or client_credential is None:
-        logger.error("Missing required environment variables to get auth token!")
-        return None
-
-    app = msal.ConfidentialClientApplication(client_id, authority, client_credential)
+def _get_auth_token(*scopes: str):
     try:
-        result = app.acquire_token_for_client(scopes=scope)
-        return result['access_token']
+        credential = DefaultAzureCredential()
+        token = credential.get_token(*scopes)
+        token = "Bearer " + token.token
+        return token
     except Exception as e:
         logger.error("Failed to get auth token: %s", e)
         return None
 
 
 def get_auth_token_for_learn_knowlegde_index():
-    scope = [os.environ["LEARN_KNOWLEDGE_INEX_SCOPE"]]
+    scope = os.environ["LEARN_KNOWLEDGE_INEX_SCOPE"]
     return _get_auth_token(scope)
